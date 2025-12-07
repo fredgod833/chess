@@ -1,6 +1,6 @@
-package fr.fgodard.java.jni;
+package com.fgodard.java.jni;
 
-import fr.fgodard.exceptions.IntlException;
+import com.fgodard.exceptions.IntlException;
 
 import java.io.Serializable;
 import java.util.Collection;

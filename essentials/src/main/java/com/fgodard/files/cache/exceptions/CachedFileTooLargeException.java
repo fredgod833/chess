@@ -1,6 +1,6 @@
-package fr.fgodard.files.cache.exceptions;
+package com.fgodard.files.cache.exceptions;
 
-import fr.fgodard.exceptions.IntlException;
+import com.fgodard.exceptions.IntlException;
 
 public class CachedFileTooLargeException extends IntlException {
 

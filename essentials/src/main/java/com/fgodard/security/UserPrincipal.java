@@ -1,6 +1,6 @@
-package com.cylande.framework.security;
+package com.fgodard.security;
 
-import fr.fgodard.security.AbstractPrincipal;
+import com.fgodard.security.AbstractPrincipal;
 
 /**
  * <p> This class extends AbstractPrincipal and therefore implements 

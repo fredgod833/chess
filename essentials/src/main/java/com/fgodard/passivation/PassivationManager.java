@@ -1,4 +1,4 @@
-package fr.fgodard.passivation;
+package com.fgodard.passivation;
 
 import java.util.HashMap;
 import java.util.Map;

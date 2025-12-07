@@ -1,9 +1,9 @@
-package fr.fgodard.exceptions;
+package com.fgodard.exceptions;
 
 import java.io.Serializable;
 import java.util.*;
 
-import static fr.fgodard.StringHelper.formatMessage;
+import static com.fgodard.StringHelper.formatMessage;
 
 /**
  * Created by crios on 21/12/22.

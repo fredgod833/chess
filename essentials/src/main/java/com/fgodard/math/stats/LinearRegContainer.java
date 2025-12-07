@@ -6,9 +6,6 @@ import java.util.List;
 
 public class LinearRegContainer<T> {
 
-    private record ObjectContainer<T>(T object, long quantity) {
-    }
-
     private final ArrayList<ObjectContainer<T>> objectsDatas = new ArrayList<>();
     private final ArrayList<Long> reg = new ArrayList<>();
     private int breakIdx = 0;
@@ -26,9 +23,9 @@ public class LinearRegContainer<T> {
 
     private void computeRegression(int desiredSize) {
         reg.clear();
-        objectsDatas.sort(Comparator.comparingLong(o -> o.quantity));
+        objectsDatas.sort(Comparator.comparingLong(o -> o.getQuantity()));
         for (int i = 0; i < objectsDatas.size() - 1; i++) {
-            reg.add(objectsDatas.get(i + 1).quantity - objectsDatas.get(i).quantity);
+            reg.add(objectsDatas.get(i + 1).getQuantity() - objectsDatas.get(i).getQuantity());
         }
         int count = reg.size();
         for (int i = 0; i < count - 1; i++) {
@@ -46,13 +43,13 @@ public class LinearRegContainer<T> {
         List<T> result = new ArrayList<T>();
         if (objectsDatas.size() < 3) {
             for (ObjectContainer<T> oc : objectsDatas) {
-                result.add(oc.object);
+                result.add(oc.getObject());
             }
             return result;
         }
         if (dirty) computeRegression(desiredSize);
         for (ObjectContainer<T> oc : objectsDatas.subList(breakIdx, objectsDatas.size())) {
-            result.add(oc.object);
+            result.add(oc.getObject());
         }
         return result;
     }
@@ -63,7 +60,7 @@ public class LinearRegContainer<T> {
             return result;
         }
         for (ObjectContainer<T> oc : objectsDatas.subList(0, breakIdx)) {
-            result.add(oc.object);
+            result.add(oc.getObject());
         }
         return result;
     }

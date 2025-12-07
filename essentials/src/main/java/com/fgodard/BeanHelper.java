@@ -1,12 +1,12 @@
-package fr.fgodard;
+package com.fgodard;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
 
-import static fr.fgodard.StringHelper.nvl;
-import static fr.fgodard.StringHelper.trim;
-import static fr.fgodard.logs.LogManager.debugFwk;
+import static com.fgodard.StringHelper.nvl;
+import static com.fgodard.StringHelper.trim;
+import static com.fgodard.logs.LogManager.debugFwk;
 
 /**
  *
@@ -21,7 +21,7 @@ public class BeanHelper {
 
     private static final int MAX_DEPTH = 3;
 
-    private static void writeObject(final StringBuilder builder, final int depth, final String propName,
+    private static void writeData(final StringBuilder builder, final int depth, final String propName,
             final Object propValue, final LinkedList written, final String separator, final List<String> excluded) {
 
         Serializable value = (Serializable) propValue;
@@ -57,6 +57,11 @@ public class BeanHelper {
         }
 
         // c'est un sous objet
+        writeObject(builder, name, depth, value, written, separator, excluded);
+    }
+
+    private static void writeObject(final StringBuilder builder, final String name, final int depth, Serializable value, final LinkedList written, final String separator, final List<String> excluded) {
+
         if (depth > MAX_DEPTH) {
             writePropName(name, builder);
             builder.append(".....");
@@ -74,7 +79,7 @@ public class BeanHelper {
         // Sous Objet non null;
         Object fieldValue;
 
-        // �viter les references circulaires entre objets;
+        // éviter les references circulaires entre objets;
         if (written.contains(value)) {
             writePropName(name, builder);
             builder.append("!loop:");
@@ -98,7 +103,7 @@ public class BeanHelper {
                         builder.append(separator);
                     }
                     fieldValue = accessor.getValue(value);
-                    writeObject(builder, depth + 1, fieldName, fieldValue, written, separator, excluded);
+                    writeData(builder, depth + 1, fieldName, fieldValue, written, separator, excluded);
                     hasOne = true;
                 }
 
@@ -147,7 +152,7 @@ public class BeanHelper {
      * Permet de joindre tous les elements d'une liste
      *
      * @param objectList
-     *            liste � joindre
+     *            liste à joindre
      * 
      * @return
      */
@@ -176,26 +181,26 @@ public class BeanHelper {
             }
             writePropName(String.format(propertyStr, String.valueOf(i)), builder);
             builder.append("[");
-            writeObject(builder, depth, null, listIter.next(), written, COLLECTION_SEPARATOR, excluded);
+            writeData(builder, depth, null, listIter.next(), written, COLLECTION_SEPARATOR, excluded);
             builder.append("]");
             i++;
         }
         return i > 0;
     }
 
-    private static boolean writeObjectArray(StringBuilder builder, String propName, int depth, Object[] array,
+    private static void writeObjectArray(StringBuilder builder, String propName, int depth, Object[] array,
             LinkedList written, String separator, List<String> excluded) {
 
         if (array.length == 0) {
             writePropName(propName, builder);
             builder.append(VOID_OBJECT_STRING);
-            return true;
+            return;
         }
 
         if (depth > MAX_DEPTH) {
             writePropName(propName, builder);
             builder.append(".....");
-            return true;
+            return;
         }
 
         final String propertyStr = propName.concat("[%s]");
@@ -205,10 +210,9 @@ public class BeanHelper {
             }
             writePropName(String.format(propertyStr, String.valueOf(i)), builder);
             builder.append("[");
-            writeObject(builder, depth, null, array[i], written, COLLECTION_SEPARATOR, excluded);
+            writeData(builder, depth, null, array[i], written, COLLECTION_SEPARATOR, excluded);
             builder.append("]");
         }
-        return true;
     }
 
     private static boolean writeObjectMap(StringBuilder builder, String propName, int depth,
@@ -225,7 +229,7 @@ public class BeanHelper {
             builder.append(".....");
             return true;
         }
-
+        
         boolean hasOneField = false;
         writePropName(propName, builder);
         builder.append("[");
@@ -234,9 +238,9 @@ public class BeanHelper {
                 builder.append(COLLECTION_SEPARATOR);
             }
             builder.append("(");
-            writeObject(builder, depth, null, entry.getKey(), written, COLLECTION_SEPARATOR, excluded);
+            writeData(builder, depth, null, entry.getKey(), written, COLLECTION_SEPARATOR, excluded);
             builder.append(")=(");
-            writeObject(builder, depth, null, entry.getValue(), written, COLLECTION_SEPARATOR, excluded);
+            writeData(builder, depth, null, entry.getValue(), written, COLLECTION_SEPARATOR, excluded);
             builder.append(")");
             hasOneField = true;
         }
@@ -275,7 +279,7 @@ public class BeanHelper {
                     break;
                 }
             } catch (Exception e) {
-                // si on ne peut acceder � la valeur de ce champ, on considère qu'il vaut nul.
+                // si on ne peut acceder à la valeur de ce champ, on considère qu'il vaut nul.
                 // => on ignore l'exception
                 debugFwk(e, "impossible d'acceder à la propriété %1$s du Bean de type %2$s", accessor.getFieldName(),
                         bean.getClass().getName());
@@ -350,7 +354,7 @@ public class BeanHelper {
             excludedList = Arrays.asList(excluded);
         }
 
-        writeObject(builder, 0, null, bean, new LinkedList(), SUB_OBJECT_SEPARATOR, excludedList);
+        writeData(builder, 0, null, bean, new LinkedList(), SUB_OBJECT_SEPARATOR, excludedList);
 
         return builder;
     }

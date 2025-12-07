@@ -1,8 +1,8 @@
-package fr.fgodard.logs;
+package com.fgodard.logs;
 
-import fr.fgodard.BeanHelper;
-import fr.fgodard.config.exceptions.ConfigurationFileException;
-import fr.fgodard.config.exceptions.ConfigurationNotFoundException;
+import com.fgodard.BeanHelper;
+import com.fgodard.config.exceptions.ConfigurationFileException;
+import com.fgodard.config.exceptions.ConfigurationNotFoundException;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,9 +13,9 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static fr.fgodard.StringHelper.formatMessage;
-import static fr.fgodard.config.Configuration.readConfigTextFile;
-import static fr.fgodard.config.Configuration.writeConfigTextFile;
+import static com.fgodard.StringHelper.formatMessage;
+import static com.fgodard.config.Configuration.readConfigTextFile;
+import static com.fgodard.config.Configuration.writeConfigTextFile;
 
 /**
  * Created by crios on 05/08/23.

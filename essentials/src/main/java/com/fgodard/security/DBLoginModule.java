@@ -1,4 +1,4 @@
-package fr.fgodard.security;
+package com.fgodard.security;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -118,9 +118,9 @@ public class DBLoginModule implements LoginModule
     catch (Exception e)
     {
       _succeeded = false;
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
+      //StringWriter sw = new StringWriter();
+      //PrintWriter pw = new PrintWriter(sw);
+      //e.printStackTrace(pw);
       throw new LoginException(e.getMessage());
     }
     String username = ((NameCallback)callbacks[0]).getName();
@@ -216,9 +216,9 @@ public class DBLoginModule implements LoginModule
         System.out.println(t.getMessage());
         t.printStackTrace();
       }
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      t.printStackTrace(pw);
+      //StringWriter sw = new StringWriter();
+      //PrintWriter pw = new PrintWriter(sw);
+      //t.printStackTrace(pw);
       throw new LoginException(t.toString());
     }
   }
@@ -377,7 +377,7 @@ public class DBLoginModule implements LoginModule
     try
     {
       Context initialContext = new InitialContext();
-      DataSource ds = (DataSource)initialContext.lookup("java:comp/env/jdbc/CylandeDS");
+      DataSource ds = (DataSource)initialContext.lookup("java:comp/env/jdbc/UserDS");
       conn = ds.getConnection();
       pstmt = conn.prepareStatement(_SQLRequest, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
       pstmt.setString(1, username);
@@ -386,50 +386,50 @@ public class DBLoginModule implements LoginModule
       {
         if (checkPass(password, resultSet.getString("PASS")))
         {
-          //_logHisto.info("user " + username + " authenticated");
           success = true;
         }
-        else
-        {
-          //_logHisto.info("user " + username + " : password does not math");
+      }
+    }
+    catch (Exception e)
+    {
+      if (debug())
+      {
+        System.out.println(e.getMessage());
+        e.printStackTrace();
+      }
+
+      throw e;
+
+    } finally {
+
+      try
+      {
+        if (resultSet != null)
+          resultSet.close();
+      } catch (Exception e) {
+        if (debug()) {
+          e.printStackTrace(System.out);
         }
       }
-      else
-      { 
-        //_logHisto.info("user " + username + " unknown");
+
+      try {
+        if (pstmt != null)
+          pstmt.close();
+      } catch (Exception e) {
+        if (debug())
+        {
+          e.printStackTrace(System.out);
+        }
       }
-    }
-    catch (Exception e)
-    {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
-      if (debug())
-      {
-        System.out.println(e.getMessage());
-        e.printStackTrace();
-      }
-      throw e;
-    }
-    
-    try
-    {
-      if (resultSet != null)
-        resultSet.close();
-      if (pstmt != null)
-        pstmt.close();
-      if ((conn != null) && !(conn.isClosed()))
-        conn.close();
-    }
-    catch (Exception e)
-    {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
-      if (debug())
-      {
-        System.out.println(e.getMessage());
-        e.printStackTrace();
+
+      try {
+        if (conn != null)
+          conn.close();
+      } catch (Exception e) {
+        if (debug())
+        {
+          e.printStackTrace(System.out);
+        }
       }
     }
     return success;

@@ -1,4 +1,4 @@
-package fr.fgodard;
+package com.fgodard;
 
 import java.text.SimpleDateFormat;
 import java.util.*;

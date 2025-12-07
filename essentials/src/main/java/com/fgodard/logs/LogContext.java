@@ -1,4 +1,4 @@
-package fr.fgodard.logs;
+package com.fgodard.logs;
 
 import java.io.Serializable;
 import java.util.function.Supplier;

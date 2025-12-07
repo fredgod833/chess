@@ -1,4 +1,4 @@
-package fr.fgodard.security;
+package com.fgodard.security;
 
 /**
  * <p> This class extends AbstractPrincipal and therefore implements 

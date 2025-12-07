@@ -1,4 +1,4 @@
-package fr.fgodard.config.exceptions;
+package com.fgodard.config.exceptions;
 
 /**
  * Exception technique.

@@ -1,10 +1,10 @@
-package fr.fgodard.config;
+package com.fgodard.config;
 
-import fr.fgodard.config.exceptions.ConfigurationFileException;
-import fr.fgodard.config.exceptions.ConfigurationNotFoundException;
-import fr.fgodard.files.cache.CachedFileProvider;
-import fr.fgodard.files.cache.exceptions.CachedFileNotFoundException;
-import fr.fgodard.files.cache.exceptions.CachedFileTooLargeException;
+import com.fgodard.config.exceptions.ConfigurationFileException;
+import com.fgodard.config.exceptions.ConfigurationNotFoundException;
+import com.fgodard.files.cache.CachedFileProvider;
+import com.fgodard.files.cache.exceptions.CachedFileNotFoundException;
+import com.fgodard.files.cache.exceptions.CachedFileTooLargeException;
 
 import java.io.*;
 import java.nio.file.Files;

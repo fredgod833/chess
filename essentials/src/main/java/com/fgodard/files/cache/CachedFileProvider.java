@@ -1,7 +1,7 @@
-package fr.fgodard.files.cache;
+package com.fgodard.files.cache;
 
-import fr.fgodard.files.cache.exceptions.CachedFileNotFoundException;
-import fr.fgodard.files.cache.exceptions.CachedFileTooLargeException;
+import com.fgodard.files.cache.exceptions.CachedFileNotFoundException;
+import com.fgodard.files.cache.exceptions.CachedFileTooLargeException;
 
 import java.io.*;
 import java.nio.file.Files;

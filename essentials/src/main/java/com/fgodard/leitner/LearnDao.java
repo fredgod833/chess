@@ -1,7 +1,7 @@
 package com.fgodard.leitner;
 
-import fr.fgodard.passivation.Parser;
-import fr.fgodard.passivation.PassivationManager;
+import com.fgodard.passivation.Parser;
+import com.fgodard.passivation.PassivationManager;
 
 import java.text.Format;
 import java.util.ArrayList;

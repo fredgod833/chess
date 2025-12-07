@@ -1,6 +1,6 @@
-package fr.fgodard.config.exceptions;
+package com.fgodard.config.exceptions;
 
-import fr.fgodard.exceptions.IntlException;
+import com.fgodard.exceptions.IntlException;
 
 /**
  * Exception technique.

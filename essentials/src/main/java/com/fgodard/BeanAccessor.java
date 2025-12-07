@@ -1,4 +1,4 @@
-package fr.fgodard;
+package com.fgodard;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

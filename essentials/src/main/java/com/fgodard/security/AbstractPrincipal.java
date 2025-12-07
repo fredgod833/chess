@@ -1,4 +1,4 @@
-package fr.fgodard.security;
+package com.fgodard.security;
 
 import java.security.Principal;
 

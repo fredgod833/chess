@@ -1,4 +1,4 @@
-package fr.fgodard.java.jni;
+package com.fgodard.java.jni;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package fr.fgodard.files.cache;
+package com.fgodard.files.cache;
 
 import java.io.ByteArrayInputStream;
 
