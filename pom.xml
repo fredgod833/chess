@@ -26,22 +26,21 @@
 	<name>chess</name>
 	<url />
 	<description>Applications utilitaires pour le jeu d'echecs</description>
-        
+
 	<!-- Project properties -->
 	<properties>
-
-            <!-- JUnit Surfire JaCoco configuration for sonar -->
+            <sonar.organization>fredgod833</sonar.organization>
+            <sonar.projectKey>fredgod833_chess</sonar.projectKey>
+            <!--              
             <sonar.junit.reportsPath>${project.build.directory}surefire-reports</sonar.junit.reportsPath>
             <sonar.surefire.reportsPath>${project.build.directory}/surefire-reports</sonar.surefire.reportsPath>
             <sonar.jacoco.reportPaths>${project.build.directory}/jacoco-reports</sonar.jacoco.reportPaths>
             <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
             <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/jacoco-reports</sonar.coverage.jacoco.xmlReportPaths>
             <sonar.jacoco.reportPaths>target/jacoco.exec</sonar.jacoco.reportPaths>
-
-            <!-- scm inactivation - no blame -->
             <sonar.scm.provider>git</sonar.scm.provider>
             <sonar.scm.disabled>true</sonar.scm.disabled>
-
+            -->
             <!-- javadoc -->
             <maven.javadoc.skip>true</maven.javadoc.skip>
                 

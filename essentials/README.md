@@ -1,3 +1,3 @@
 # essential
 
-Outils essentiels
+Outils de dev java génériques.
