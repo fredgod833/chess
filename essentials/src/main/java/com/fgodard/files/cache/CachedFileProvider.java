@@ -1,0 +1,120 @@
+package fr.fgodard.files.cache;
+
+import fr.fgodard.files.cache.exceptions.CachedFileNotFoundException;
+import fr.fgodard.files.cache.exceptions.CachedFileTooLargeException;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Cache de lecture de fichier. Thread Safe.
+ */
+public class CachedFileProvider {
+
+    private static final ThreadLocal<CachedFileProvider> INSTANCE_MGR = new ThreadLocal<CachedFileProvider>() {
+        @Override
+        protected synchronized CachedFileProvider initialValue() {
+            return new CachedFileProvider();
+        }
+    };
+
+    private CachedFileProvider() {
+
+    }
+
+    private static final long MAX_BUFFERDFILE_SIZE = 20480; // 20kO
+
+    private final Map<String, CachedStream> cachedMap = new HashMap<>();
+
+    private CachedStream loadFile(final File file) throws CachedFileNotFoundException, CachedFileTooLargeException {
+        if (!file.exists() || !file.canRead()) {
+            throw new CachedFileNotFoundException("Fichier %1$s introuvable ou inaccessible.", file.getAbsolutePath());
+        }
+        long size = file.length();
+        if (size > MAX_BUFFERDFILE_SIZE) {
+            throw new CachedFileTooLargeException("Fichier %1$s trop grand pour le cache.", file.getAbsolutePath());
+        }
+        try {
+            Path p = file.toPath();
+
+            long fileTime = Files.getLastModifiedTime(p).toMillis();
+            CachedStream result = new CachedStream(Files.readAllBytes(p), fileTime);
+            cachedMap.put(file.getAbsolutePath(), result);
+            return result;
+
+        } catch (FileNotFoundException e) {
+            throw new CachedFileNotFoundException(e, "Fichier %1$s introuvable ou inaccessible.",
+                    file.getAbsolutePath());
+
+        } catch (IOException e) {
+            throw new CachedFileNotFoundException(e, "Fichier %1$s illisible.", file.getAbsolutePath());
+
+        }
+    }
+
+    /**
+     *
+     * @param file
+     * @param stream
+     * 
+     * @return
+     * 
+     * @throws CachedFileNotFoundException
+     */
+    private CachedStream streamCheck(CachedStream stream, File file)
+            throws CachedFileNotFoundException, CachedFileTooLargeException {
+        try {
+            long fileTime = Files.getLastModifiedTime(file.toPath()).toMillis();
+            if (fileTime > stream.getLastModifiedTime()) {
+                return loadFile(file);
+            }
+
+            stream.setLastCheckTs(System.currentTimeMillis());
+            return stream.refresh();
+
+        } catch (IOException e) {
+            throw new CachedFileNotFoundException(e, "Fichier %1$s illisible.", file.getAbsolutePath());
+
+        }
+    }
+
+    private CachedStream getCachedStream(final File file, final long checkInterval)
+            throws CachedFileNotFoundException, CachedFileTooLargeException {
+        CachedStream stream = cachedMap.get(file.getAbsolutePath());
+        if (stream == null) {
+            return loadFile(file);
+        }
+        if (stream.getLastCheckTs() + checkInterval < System.currentTimeMillis()) {
+            return streamCheck(stream, file);
+        }
+        if (stream != null) {
+            stream.reset();
+        }
+        return stream;
+    }
+
+    /**
+     * Retourne le flux du fichier mis en cache
+     *
+     * @param file
+     *            : le fichier à lire
+     * @param checkInterval
+     *            : l'interval de vérification de modification de fichier (en secondes)
+     * 
+     * @return le flux
+     * 
+     * @throws CachedFileNotFoundException
+     *             si le fichier n'est pas trouvé ou pas accessible.
+     */
+    public static CachedStream getCachedInputStream(final File file, final int checkInterval)
+            throws CachedFileNotFoundException, CachedFileTooLargeException {
+        if (file == null) {
+            throw new CachedFileNotFoundException("Fichier null n'existe pas.");
+        }
+        return INSTANCE_MGR.get().getCachedStream(file, checkInterval * 1000l);
+    }
+
+}

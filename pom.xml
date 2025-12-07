@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+    <modelVersion>4.0.0</modelVersion>
+        
+	<!-- 
+	 | FGodard
+	 +-->
+	<organization>
+            <name>FGodard</name>
+            <!--<url>http://tech.fgodard.com</url>-->
+	</organization>
+	
+	<!--
+	 | Stream project details
+	 +-->
+	<!-- Coordinates -->
+	<groupId>com.fgodard</groupId>
+	<artifactId>chess</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	
+	<!-- Packaging -->
+	<packaging>pom</packaging>
+	
+	<!-- Description -->
+	<name>chess</name>
+	<url />
+	<description>Applications utilitaires pour le jeu d'echecs</description>
+        
+	<!-- Project properties -->
+	<properties>
+
+            <!-- JUnit Surfire JaCoco configuration for sonar -->
+            <sonar.junit.reportsPath>${project.build.directory}surefire-reports</sonar.junit.reportsPath>
+            <sonar.surefire.reportsPath>${project.build.directory}/surefire-reports</sonar.surefire.reportsPath>
+            <sonar.jacoco.reportPaths>${project.build.directory}/jacoco-reports</sonar.jacoco.reportPaths>
+            <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
+            <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/jacoco-reports</sonar.coverage.jacoco.xmlReportPaths>
+            <sonar.jacoco.reportPaths>target/jacoco.exec</sonar.jacoco.reportPaths>
+
+            <!-- scm inactivation - no blame -->
+            <sonar.scm.provider>git</sonar.scm.provider>
+            <sonar.scm.disabled>true</sonar.scm.disabled>
+
+            <!-- javadoc -->
+            <maven.javadoc.skip>true</maven.javadoc.skip>
+                
+	</properties>
+        <!--
+        <scm>
+            <url>https://github.com/fredgod833/chess.git</url>
+            <connection>scm:git:https://github.com/fredgod833/chess.git</connection>
+            <developerConnection>https://github.com/fredgod833/chess.git</developerConnection>
+            <tag>HEAD</tag>
+        </scm>
+        
+        <distributionManagement>            
+
+        </distributionManagement>
+        -->
+	<!-- Project team -->
+	<developers>
+            <developer>
+                <id>fgodard</id>
+                <name>Frederic Godard</name>
+                <email>godard.fred@gmail.com</email>
+                <organization>fgodard.com</organization>
+                <timezone>+1</timezone>
+            </developer>
+	</developers>
+	
+	<build>
+            <!-- Build Plugins -->
+            <plugins>
+
+                <!-- Java 1.6 compile : "mvn compile" -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.0</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <!-- <encoding>ISO-8859-15</encoding> -->
+                    </configuration>
+                </plugin>
+
+                <!-- Custom Build TimeStamp -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.10</version>
+                    <executions>
+                        <execution>
+                            <id>timestamp-property</id>
+                            <goals>
+                                <goal>timestamp-property</goal>
+                            </goals>
+                            <configuration>
+                                <name>build.time</name>
+                                <pattern>yyyyMMdd.HHmmss</pattern>
+                                <locale>fr,FR</locale>
+                                <timeZone>Europe/Paris</timeZone>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- code coverage -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.2</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>post-unit-test</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <!-- Sets the path to the file which contains the execution data. -->
+                                <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                                <!-- Sets the output directory for the code coverage report. -->
+                                <outputDirectory>${project.build.directory}/jacoco-reports</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+
+                <!-- release -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                </plugin>
+
+                <!-- site -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.7.1</version>
+                </plugin>
+
+            </plugins>
+	</build>
+        
+	<!--
+	 | Centralize definition of dependencies
+	 | (to avoid duplaction of informations such as versions, ...)
+	 +-->
+	<dependencyManagement>
+            <dependencies>
+            </dependencies>
+	</dependencyManagement>
+
+    <!--
+     | Project's modules aggregation (childs projects)
+     +-->
+    <modules>
+        <module>essentials</module>        
+    </modules>
+  
+  	<reporting>
+
+        <plugins>
+            <!-- Todo tags -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>taglist-maven-plugin</artifactId>
+                <version>2.4</version>
+            </plugin>
+
+            <!-- JavaDoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration />
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <configLocation>config/sun_checks.xml</configLocation>
+                </configuration>
+            </plugin>
+
+        </plugins>
+
+	</reporting>
+	
+</project>
