@@ -30,7 +30,9 @@
 	<!-- Project properties -->
 	<properties>
             <sonar.organization>fredgod833</sonar.organization>
-            <sonar.projectKey>fredgod833_chess</sonar.projectKey>
+            <sonar.token>c6f7af2502db07c8983e3126c86442dd76708f7c</sonar.token>
+            <sonar.projectKey>${project.artifactId}</sonar.projectKey>
+            
             <!--              
             <sonar.junit.reportsPath>${project.build.directory}surefire-reports</sonar.junit.reportsPath>
             <sonar.surefire.reportsPath>${project.build.directory}/surefire-reports</sonar.surefire.reportsPath>
@@ -45,7 +47,6 @@
             <maven.javadoc.skip>true</maven.javadoc.skip>
                 
 	</properties>
-        <!--
         <scm>
             <url>https://github.com/fredgod833/chess.git</url>
             <connection>scm:git:https://github.com/fredgod833/chess.git</connection>
@@ -56,7 +57,6 @@
         <distributionManagement>            
 
         </distributionManagement>
-        -->
 	<!-- Project team -->
 	<developers>
             <developer>
@@ -175,7 +175,8 @@
      | Project's modules aggregation (childs projects)
      +-->
     <modules>
-        <module>essentials</module>        
+        <module>essentials</module>
+        <module>chessboard</module>
     </modules>
   
   	<reporting>

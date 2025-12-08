@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - master
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -33,4 +34,4 @@ jobs:
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fredgod833_chess
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
