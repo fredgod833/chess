@@ -3,6 +3,7 @@ package com.fgodard.chess.board;
 import com.fgodard.chess.exception.InvalidCellException;
 import com.fgodard.chess.exception.InvalidPieceColorException;
 import com.fgodard.chess.exception.InvalidPieceException;
+import com.fgodard.chess.exception.InvalidPositionException;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -341,27 +342,35 @@ class PositionExporter {
         }
     }
 
-    private static void importLLPBoard(GameBoard board, final String boardPosition) throws InvalidPieceException {
+    private static void importLLPBoard(GameBoard board, final String boardPosition) throws InvalidPositionException {
         String[] posArray = boardPosition.split("-");
         if (posArray.length != 4) {
-            throw new InvalidPieceException("Position %s invalide.", boardPosition);
+            throw new InvalidPositionException("Position %s invalide.", boardPosition);
         }
-        String sBoardPos = posArray[0] + posArray[1] + posArray[2].substring(0, 8) + posArray[3].substring(0, 8);
-        for (int i = 0; i < 32; i++) {
-            char cPiece = PIECES.charAt(i);
-            char cPos = sBoardPos.charAt(i);
-            if (cPos != '.') {
-                int cellIdx = CELLS.indexOf(cPos);
-                int line = cellIdx / 8;
-                int col = cellIdx % 8;
-                board.addPiece(cPiece, col, line);
+
+        try {
+            String sBoardPos = posArray[0] + posArray[1] + posArray[2].substring(0, 8) + posArray[3].substring(0, 8);
+            for (int i = 0; i < 32; i++) {
+                char cPiece = PIECES.charAt(i);
+                char cPos = sBoardPos.charAt(i);
+                if (cPos != '.') {
+                    int cellIdx = CELLS.indexOf(cPos);
+                    int line = cellIdx / 8;
+                    int col = cellIdx % 8;
+                    board.addPiece(cPiece, col, line);
+                }
             }
+            addPromotedPieces(board, posArray[2]);
+            addPromotedPieces(board, posArray[3]);
+
+        } catch (InvalidPieceException | InvalidCellException e) {
+            throw new InvalidPositionException(e,"Position %s invalide.", boardPosition);
+
         }
-        addPromotedPieces(board, posArray[2]);
-        addPromotedPieces(board, posArray[3]);
+
     }
 
-    private static void addPromotedPieces(GameBoard board, String promotedPiece) throws InvalidPieceException {
+    private static void addPromotedPieces(GameBoard board, String promotedPiece) throws InvalidPieceException, InvalidCellException {
         for (int i = 8; i < promotedPiece.length() - 1; i += 2) {
             char cPiece = promotedPiece.charAt(i);
             char cPos = promotedPiece.charAt(i + 1);
@@ -372,60 +381,44 @@ class PositionExporter {
         }
     }
 
-    private static void importUnCompressedBoard(GameBoard board, final String boardPosition) throws InvalidPieceException {
-        String[] lines = boardPosition.split("/");
-        int lineNum = 7;
-        for (String line : lines) {
-            int col = 0;
-            while (col < line.length()) {
-                Character c = line.charAt(col);
-                if (c != '-') {
-                    board.addPiece(c, col, lineNum);
+    private static void importFenBoard(GameBoard board, final String boardPosition) throws InvalidPositionException {
+        try {
+            String[] lines = boardPosition.split("/");
+            int lineNum = 7;
+            for (String line : lines) {
+                int col = 0;
+                int p = 0;
+                while (col < 8) {
+                    Character c = line.charAt(p);
+                    if (c > '0' && c < '9') {
+                        col += Integer.parseInt(String.valueOf(c));
+                    } else {
+                        board.addPiece(c, col, lineNum);
+                        col++;
+                    }
+                    p++;
                 }
-                col++;
+                lineNum--;
             }
-            lineNum--;
+        } catch (InvalidPieceException | InvalidCellException e) {
+            throw new InvalidPositionException(e, "Position FEN %s invalide");
         }
     }
 
-    private static void importFenBoard(GameBoard board, final String boardPosition) throws InvalidPieceException {
-        String[] lines = boardPosition.split("/");
-        int lineNum = 7;
-        for (String line : lines) {
-            int col = 0;
-            int p = 0;
-            while (col < 8) {
-                Character c = line.charAt(p);
-                if (c > '0' && c < '9') {
-                    col += Integer.parseInt(String.valueOf(c));
-                } else {
-                    board.addPiece(c, col, lineNum);
-                    col++;
-                }
-                p++;
-            }
-            lineNum--;
-        }
-    }
-
-    static void importLLP(final GameBoard board, final String boardPosition) throws InvalidPieceException {
+    static void importLLP(final GameBoard board, final String boardPosition) throws InvalidPositionException {
         importLLPBoard(board, boardPosition);
     }
 
-    static void importFEN(final GameBoard board, final String fenPosition) throws InvalidPieceException, InvalidPieceColorException, InvalidCellException {
-        String[] gameData = fenPosition.split(" ");
-        importFenBoard(board, gameData[0]);
-        board.setNextTurnColor(gameData[1]);
-        board.setCastleInfo(gameData[2]);
-        board.setEnPassantCell(gameData[3]);
-    }
-
-    static void importUncompressed(final GameBoard board, final String position) throws InvalidPieceException, InvalidPieceColorException, InvalidCellException {
-        String[] gameData = position.split("[ ]");
-        importUnCompressedBoard(board, gameData[0]);
-        board.setNextTurnColor(gameData[1]);
-        board.setCastleInfo(gameData[2]);
-        board.setEnPassantCell(gameData[3]);
+    static void importFEN(final GameBoard board, final String fenPosition) throws InvalidPositionException {
+        try {
+            String[] gameData = fenPosition.split(" ");
+            importFenBoard(board, gameData[0]);
+            board.setNextTurnColor(gameData[1]);
+            board.setCastleInfo(gameData[2]);
+            board.setEnPassantCell(gameData[3]);
+        } catch (InvalidPieceColorException | InvalidCellException e) {
+            throw new InvalidPositionException(e, "Position FEN %s invalide", fenPosition);
+        }
     }
 
     static String exportHTML(GameBoard g, Color color) {

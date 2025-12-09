@@ -4,10 +4,7 @@ import com.fgodard.chess.beans.BoardState;
 import com.fgodard.chess.beans.Ply;
 import com.fgodard.chess.beans.Position;
 import com.fgodard.chess.board.pieces.*;
-import com.fgodard.chess.exception.InvalidCellException;
-import com.fgodard.chess.exception.InvalidMoveException;
-import com.fgodard.chess.exception.InvalidPieceColorException;
-import com.fgodard.chess.exception.InvalidPieceException;
+import com.fgodard.chess.exception.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -297,21 +294,24 @@ public class GameBoard {
 
     }
 
-    public void addPiece(final Character piece, int col, int line) throws InvalidPieceException {
+    public void addPiece(final Character piece, int col, int line) throws InvalidPieceException, InvalidCellException {
 
         Optional<BoardCell> cell = Board.getCell(col, line);
-        Piece p = buildPiece(piece);
-        p.setCurrentBoard(this);
-        p.setCell(cell.get());
-        if (piece > 'A' && piece < 'Z') {
-            p.setColor(Color.WHITE);
-            whitePiecesList.add(p);
+        if(cell.isPresent()) {
+            Piece p = buildPiece(piece);
+            p.setCurrentBoard(this);
+            p.setCell(cell.get());
+            if (piece > 'A' && piece < 'Z') {
+                p.setColor(Color.WHITE);
+                whitePiecesList.add(p);
+            } else {
+                p.setColor(Color.BLACK);
+                blackPiecesList.add(p);
+            }
+            boardMap[cell.get().getIdx()] = p;
         } else {
-            p.setColor(Color.BLACK);
-            blackPiecesList.add(p);
+            throw new InvalidCellException("Pas de case à la position (%s,%s).",col,line);
         }
-
-        boardMap[cell.get().getIdx()] = p;
 
     }
 
@@ -646,11 +646,10 @@ public class GameBoard {
         state = null;
     }
 
-    public void importFEN(final String position) throws InvalidPieceColorException, InvalidCellException, InvalidPieceException {
+    public void importFEN(final String position) throws InvalidPositionException {
 
         clearCells();
         PositionExporter.importFEN(this, position);
-        //this.fen = position;
 
     }
 
@@ -664,11 +663,10 @@ public class GameBoard {
 
     }
 
-    public void importLLP(final String position) throws InvalidPieceColorException, InvalidCellException, InvalidPieceException {
+    public void importLLP(final String position) throws InvalidPositionException {
         clearCells();
         PositionExporter.importLLP(this, position);
         llp = position;
-
     }
 
     public String exportLLP() {
