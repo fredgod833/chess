@@ -585,15 +585,17 @@ public class GameBoard {
         return chess960;
     }
 
-    void setEnPassantCell(final String enPassant) throws InvalidCellException {
+    public void setEnPassantCell(final String enPassant) throws InvalidCellException {
+
+        enPassantCell = null;
+        enPassantPawn = null;
 
         if (enPassant == null || enPassant.length() < 2) {
-            enPassantCell = null;
-            return;
+            throw new InvalidCellException("Case %s inconnue", enPassant);
         }
 
         BoardCell cell = Board.getCell(enPassant);
-        setEnPassantCell(cell);
+
         int line = cell.getLineIdx();
         int col = cell.getColIdx();
         if (line == 5) {
@@ -603,9 +605,12 @@ public class GameBoard {
             line = 3;
         }
 
-        Optional<BoardCell> pawnCell = Board.getCell(col, line);
-        enPassantPawn = (Pawn) getPiece(pawnCell.get());
-
+        Board.getCell(col, line)
+                .ifPresent(boardCell -> enPassantPawn = (Pawn) getPiece(boardCell));
+        if(enPassantPawn == null) {
+            throw new InvalidCellException("La case %s n'est pas valide pour la prise en passant.",enPassant);
+        }
+        setEnPassantCell(cell);
     }
 
     void setCastleInfo(final String castleInfos) {

@@ -409,13 +409,15 @@ class PositionExporter {
         importLLPBoard(board, boardPosition);
     }
 
-    static void importFEN(final GameBoard board, final String fenPosition) throws InvalidPositionException {
+    public static void importFEN(final GameBoard board, final String fenPosition) throws InvalidPositionException {
         try {
             String[] gameData = fenPosition.split(" ");
             importFenBoard(board, gameData[0]);
             board.setNextTurnColor(gameData[1]);
             board.setCastleInfo(gameData[2]);
-            board.setEnPassantCell(gameData[3]);
+            if (!"-".equals(gameData[3])) {
+                board.setEnPassantCell(gameData[3]);
+            }
         } catch (InvalidPieceColorException | InvalidCellException e) {
             throw new InvalidPositionException(e, "Position FEN %s invalide", fenPosition);
         }
@@ -437,7 +439,7 @@ class PositionExporter {
         return sb.toString();
     }
 
-    static String exportFEN(GameBoard g) {
+    public static String exportFEN(GameBoard g) {
         StringBuilder sb = new StringBuilder(100);
         appendFENPosition(sb, g);
         sb.append(" ");
@@ -449,7 +451,7 @@ class PositionExporter {
         return sb.toString();
     }
 
-    static String exportLLP(GameBoard g) {
+    public static String exportLLP(GameBoard g) {
         StringBuilder sb = new StringBuilder();
         appendLLPBoard(g, sb);
         return sb.toString();
