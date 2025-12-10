@@ -9,22 +9,52 @@ import java.util.Optional;
 
 public class MoveHelper {
 
-    public static void addElementsFromDirection(GameBoard board,
-                                                BoardCell orgCell,
-                                                Color playerColor,
-                                                int colIncrement, int lineIncrement,
-                                                Collection<BoardCell> destCells,
-                                                Collection<Piece> targetPieces) {
-        for (int i = 1; i < 8; i++) {
-            Optional<BoardCell> nextCell = Board.getCell(orgCell, colIncrement * i, lineIncrement * i);
-            if (nextCell.isEmpty()) {
-                return;
-            }
+
+    private static Piece[] mergePiecesArrays(Piece[]... piecesArray) {
+
+        int count = 0;
+        for (Piece[] pieces : piecesArray) {
+            count += pieces.length;
+        }
+
+        Piece[] result = new Piece[count];
+        count = 0;
+        for (Piece[] pieces : piecesArray) {
+            System.arraycopy(pieces, 0, result, count, pieces.length);
+            count += pieces.length;
+        }
+
+        return result;
+    }
+
+
+    /**
+     * Ajoute un élement (cellule vide ou Piece adverse en prise) aux listes destCells et targetPieces
+     * Selon ce qui est trouvé sur la case relative à la case d'origine.
+     * @param board : l'echiquier en étude
+     * @param orgCell : case d'origine
+     * @param playerColor : couleur du joueur
+     * @param colIncrement : incrément relatif à la case d'origine (col)
+     * @param lineIncrement : incrément relatif à la case d'origine (line)
+     * @param destCells : liste des cases de destination possibles
+     * @param targetPieces : liste des piéces prenables
+     * @return true si un élément blocant est trouvé (piece ou sortie d'échiquier)
+     */
+    private static boolean addRelativeElement(GameBoard board,
+                                              BoardCell orgCell,
+                                              Color playerColor,
+                                              int colIncrement, int lineIncrement,
+                                              Collection<BoardCell> destCells,
+                                              Collection<Piece> targetPieces) {
+
+        Optional<BoardCell> nextCell = Board.getCell(orgCell, colIncrement, lineIncrement);
+        if (nextCell.isPresent()) {
             Piece piece = board.getPiece(nextCell.get());
             if (piece == null) {
                 if (destCells != null) {
                     destCells.add(nextCell.get());
                 }
+                return false;
             } else {
                 if (piece.getColor() != playerColor) {
                     if (destCells != null) {
@@ -34,12 +64,46 @@ public class MoveHelper {
                         targetPieces.add(piece);
                     }
                 }
+                return true;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Ajoute les élements (cellule vide ou Piece adverse en prise) aux listes destCells et targetPieces
+     * En parcourant l'échiquier dans une direction à partir d'une case donnée
+     * @param board : l'echiquier en étude
+     * @param orgCell : case d'origine
+     * @param playerColor : couleur du joueur
+     * @param colIncrement : incrément relatif à la case d'origine (col)
+     * @param lineIncrement : incrément relatif à la case d'origine (line)
+     * @param destCells : liste des cases de destination possibles
+     * @param targetPieces : liste des piéces prenables
+     */
+    private static void addElementsFromDirection(GameBoard board,
+                                                BoardCell orgCell,
+                                                Color playerColor,
+                                                int colIncrement, int lineIncrement,
+                                                Collection<BoardCell> destCells,
+                                                Collection<Piece> targetPieces) {
+        for (int i = 1; i < 8; i++) {
+            if (addRelativeElement(board,orgCell,playerColor,colIncrement * i, lineIncrement * i, destCells, targetPieces)) {
                 break;
             }
         }
-
     }
 
+    /**
+     * Ajoute les élements (cellule vide ou Piece adverse en prise) aux listes destCells et targetPieces
+     * En parcourant l'échiquier dans une direction à partir d'une pièce de l'échiquier
+     * @param orgPiece : piece à étudier
+     * @param colIncrement : incrément relatif à la case d'origine (col)
+     * @param lineIncrement : incrément relatif à la case d'origine (line)
+     * @param destCells : liste des cases de destination possibles
+     * @param targetPieces : liste des piéces prenables
+     */
     public static void addElementsFromDirection(Piece orgPiece,
                                                 int colIncrement, int lineIncrement,
                                                 Collection<BoardCell> destCells,
@@ -49,35 +113,17 @@ public class MoveHelper {
 
     }
 
-    public static void addRelativeElement(GameBoard board,
-                                          BoardCell orgCell,
-                                          Color playerColor,
-                                          int colIncrement, int lineIncrement,
-                                          Collection<BoardCell> destCells,
-                                          Collection<Piece> targetPieces) {
 
-        Optional<BoardCell> nextCell = Board.getCell(orgCell, colIncrement, lineIncrement);
-        if (nextCell.isEmpty()) {
-            return;
-        }
-        Piece piece = board.getPiece(nextCell.get());
-        if (piece == null) {
-            if (destCells != null) {
-                destCells.add(nextCell.get());
-            }
-        } else {
-            if (piece.getColor() != playerColor) {
-                if (destCells != null) {
-                    destCells.add(nextCell.get());
-                }
-                if (targetPieces != null) {
-                    targetPieces.add(piece);
-                }
-            }
-        }
-
-    }
-
+    /**
+     * Ajoute un élement (cellule vide ou Piece adverse en prise) aux listes destCells et targetPieces
+     * Selon ce qui est trouvé sur la case relative à la piece étudiée.
+     * @param orgPiece : piece à étudier
+     * @param colIncrement : incrément relatif à la case d'origine (col)
+     * @param lineIncrement : incrément relatif à la case d'origine (line)
+     * @param destCells : liste des cases de destination possibles
+     * @param targetPieces : liste des piéces prenables
+     * @return true si un élément blocant est trouvé (piece ou sortie d'échiquier)
+     */
     public static void addRelativeElement(Piece orgPiece,
                                           int colIncrement, int lineIncrement,
                                           Collection<BoardCell> destCells,
@@ -88,11 +134,11 @@ public class MoveHelper {
     }
 
     /**
-     * Recherche les pieces qui attaquent une case de l'échiquier contre le joueur
+     * Recherche les pieces qui controlent une case de l'échiquier contre le joueur
      * @param board l'echiquier en cours
-     * @param orgCell la case
+     * @param orgCell la case a étudier
      * @param playerColor la couleur du joueur
-     * @param filter filtre les pieces  (optimise la recherche) (exemple : "RBQ")
+     * @param filter filtre les pieces attaquantes potentielles (optimise la recherche) (exemple : "RBQ")
      * @return la liste des pieces
      */
     public Collection<Piece> findAttackingPieces(GameBoard board, BoardCell orgCell, Color playerColor, final String filter) {
@@ -174,23 +220,6 @@ public class MoveHelper {
         }
 
         return findAttackingPieces(king.getCurrentBoard(), king.getCell(), king.getColor(), filter);
-    }
-
-    private static Piece[] mergePiecesArrays(Piece[]... piecesArray) {
-
-        int count = 0;
-        for (Piece[] pieces : piecesArray) {
-            count += pieces.length;
-        }
-
-        Piece[] result = new Piece[count];
-        count = 0;
-        for (Piece[] pieces : piecesArray) {
-            System.arraycopy(pieces, 0, result, count, pieces.length);
-            count += pieces.length;
-        }
-
-        return result;
     }
 
 }

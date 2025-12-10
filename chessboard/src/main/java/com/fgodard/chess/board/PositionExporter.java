@@ -430,12 +430,6 @@ class PositionExporter {
         } else {
             appendWhiteHTMLPosition(sb, g);
         }
-        //sb.append(" ");
-        //appendTurnColor(sb, g);
-        //sb.append(" ");
-        //appendCastleInfo(sb, g);
-        //sb.append(" ");
-        //appendEnPassantInfo(sb, g);
         return sb.toString();
     }
 
