@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import static com.fgodard.StringHelper.formatMessage;
+import java.io.PrintWriter;
 
 /**
  * Created by crios on 21/12/22.
@@ -15,22 +16,9 @@ public class IntlException extends Exception {
     private String formattedMsg = null;
     private String msgKey = null;
     private static Locale locale = Locale.FRENCH;
-
-    public IntlException(final String message) {
-        super(message);
-        this.msgKey = message == null ? null : message.trim();
-    }
-
-    public <T extends Throwable> IntlException(T cause, final String message) {
-        super(message);
-        this.msgKey = message == null ? null : message.trim();
-        this.causes.add(cause);
-    }
-
-    public <T extends Throwable> IntlException(Collection<T> causes, final String message) {
-        super(message);
-        this.msgKey = message == null ? null : message.trim();
-        this.causes.addAll(causes);
+        
+    public IntlException() {
+        super();
     }
 
     public IntlException(final String message, Serializable... params) {
@@ -58,12 +46,14 @@ public class IntlException extends Exception {
         if (formattedMsg != null) {
             return formattedMsg;
         }
+        filterStackTrace(this);
         formattedMsg = buildMessage(new StringBuilder()).toString();
         return formattedMsg;
     }
 
     private StringBuilder buildMessage(StringBuilder sb) {
         buildHeadMsg(sb);
+        addStackInfo(sb,this,1);
         causes.stream().filter(e -> e != this).forEach(e -> {
             buildMessage(sb, e, 1);
         });
@@ -72,7 +62,7 @@ public class IntlException extends Exception {
 
     private void buildHeadMsg(StringBuilder sb) {
         if (msgKey == null || msgKey.isEmpty()) {
-            sb.append(this.getClass().getCanonicalName());
+            sb.append(this.getClass().getName());
             return;
         }
 
@@ -109,7 +99,13 @@ public class IntlException extends Exception {
             sb.append("\t");
         }
         sb.append("cause: ");
-        sb.append(exception.getMessage());
+        String msg = exception.getMessage();
+        if(msg == null || msg.isBlank()) {
+            sb.append(exception.getClass().getCanonicalName());
+        } else {
+            sb.append(msg);
+        }
+        addStackInfo(sb,exception,level+1);
         Throwable cause = exception.getCause();
         if (cause != null && cause != exception) {
             buildMessage(sb, cause, level+1);
@@ -117,12 +113,42 @@ public class IntlException extends Exception {
         return sb;
     }
 
-    public static Locale getLocale() {
-        return locale;
-    }
-
     public static void setLocale(Locale value) {
         locale = value;
+    }
+
+    private void filterStackTrace(Throwable t) {
+        StackTraceElement[] elements = t.getStackTrace();
+        List<StackTraceElement> newList = new ArrayList<>();
+        for (StackTraceElement e : elements) {
+            newList.add(e);
+            if (!e.getClassName().startsWith("com.fgodard")) {
+                break;
+            }
+        }
+        t.setStackTrace(newList.toArray(new StackTraceElement[0]));        
+    }
+    
+    
+    @Override
+    public void printStackTrace(PrintWriter writer) {
+        writer.append(this.getMessage());
+    }
+
+    private void addStackInfo(StringBuilder sb, Throwable t, int level) {
+        StackTraceElement[] elements = t.getStackTrace();
+        if (elements.length > 0) {
+            sb.append("\n");
+            for (int i=1; i<level; i++) {
+                sb.append("\t");
+            }
+            sb.append("@");
+            sb.append(elements[0].getClassName());
+            sb.append(".");
+            sb.append(elements[0].getMethodName());
+            sb.append(":");
+            sb.append(elements[0].getLineNumber());
+        }
     }
 
 }
