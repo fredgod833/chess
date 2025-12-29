@@ -5,10 +5,8 @@ import com.fgodard.config.exceptions.ConfigurationFileException;
 import com.fgodard.config.exceptions.ConfigurationNotFoundException;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;

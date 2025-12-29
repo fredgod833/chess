@@ -14,6 +14,7 @@ public class IntlException extends Exception {
     private Serializable[] msgParams = null;
     private String formattedMsg = null;
     private String msgKey = null;
+    private static Locale locale = Locale.FRENCH;
 
     public IntlException(final String message) {
         super(message);
@@ -77,8 +78,8 @@ public class IntlException extends Exception {
 
         String msg;
         try {
-            final String sBundleName = this.getClass().getPackage().getName().concat("-exceptions");
-            ResourceBundle exceptionsMsg = PropertyResourceBundle.getBundle(sBundleName);
+            final String sBundleName = this.getClass().getPackage().getName().replace('.','_');
+            ResourceBundle exceptionsMsg = PropertyResourceBundle.getBundle(sBundleName,locale);
             msg = exceptionsMsg.getString(msgKey).trim();
 
         } catch (MissingResourceException e) {
@@ -114,6 +115,14 @@ public class IntlException extends Exception {
             buildMessage(sb, cause, level+1);
         }
         return sb;
+    }
+
+    public static Locale getLocale() {
+        return locale;
+    }
+
+    public static void setLocale(Locale value) {
+        locale = value;
     }
 
 }

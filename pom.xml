@@ -69,6 +69,7 @@
 	</developers>
 	
 	<build>
+            <pluginManagement>
             <!-- Build Plugins -->
             <plugins>
 
@@ -84,7 +85,7 @@
                     </configuration>
                 </plugin>
 
-                <!-- Custom Build TimeStamp -->
+                <!-- Custom Build TimeStamp 
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
@@ -104,12 +105,12 @@
                         </execution>
                     </executions>
                 </plugin>
-
-                <!-- code coverage -->
+-->
+                <!-- code coverage  -->
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.2</version>
+                    <version>0.8.4</version>
                     <executions>
                         <execution>
                             <id>prepare-agent</id>
@@ -131,9 +132,7 @@
                                 <goal>report</goal>
                             </goals>
                             <configuration>
-                                <!-- Sets the path to the file which contains the execution data. -->
                                 <dataFile>${project.build.directory}/jacoco.exec</dataFile>
-                                <!-- Sets the output directory for the code coverage report. -->
                                 <outputDirectory>${project.build.directory}/jacoco-reports</outputDirectory>
                             </configuration>
                         </execution>
@@ -160,6 +159,7 @@
                 </plugin>
 
             </plugins>
+            </pluginManagement>
 	</build>
         
 	<!--
@@ -180,7 +180,7 @@
     </modules>
   
   	<reporting>
-
+        
         <plugins>
             <!-- Todo tags -->
             <plugin>
