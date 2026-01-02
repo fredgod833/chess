@@ -46,6 +46,7 @@ public class ExceptionsTest {
         StringWriter out = new StringWriter();
         PrintWriter pw = new PrintWriter(out);
         e.printStackTrace(pw);
+        System.out.println(out.toString());
         assertTrue(out.toString().startsWith("Exception interne n°2"));
     }
     
@@ -57,6 +58,7 @@ public class ExceptionsTest {
         StringWriter out = new StringWriter();
         PrintWriter pw = new PrintWriter(out);
         e.printStackTrace(pw);
+        System.out.println(out.toString());
         assertTrue(out.toString().startsWith("Exception interne n°3 valeur=7.5"));
     }
     
