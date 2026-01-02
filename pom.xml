@@ -29,6 +29,7 @@
 
 	<!-- Project properties -->
 	<properties>
+            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
             <sonar.organization>fredgod833</sonar.organization>
             <sonar.token>c6f7af2502db07c8983e3126c86442dd76708f7c</sonar.token>
             <sonar.projectKey>${project.artifactId}</sonar.projectKey>
