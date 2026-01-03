@@ -11,7 +11,7 @@
         <artifactId>chess</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
+    
     <!--
     | Project details
     +-->
@@ -20,7 +20,12 @@
     <artifactId>essentials</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-
+    
+    <properties>
+            <sonar.projectKey>fredgod833_${project.artifactId}</sonar.projectKey>     
+            <sonar.projectName>${project.artifactId}</sonar.projectName>
+    </properties>
+       
     <build>
 
         <resources>

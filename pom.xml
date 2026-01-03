@@ -30,24 +30,30 @@
 	<!-- Project properties -->
 	<properties>
             <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-            <sonar.organization>fredgod833</sonar.organization>
-            <sonar.token>c6f7af2502db07c8983e3126c86442dd76708f7c</sonar.token>
-            <sonar.projectKey>${project.artifactId}</sonar.projectKey>
             
-            <!--              
             <sonar.junit.reportsPath>${project.build.directory}surefire-reports</sonar.junit.reportsPath>
             <sonar.surefire.reportsPath>${project.build.directory}/surefire-reports</sonar.surefire.reportsPath>
-            <sonar.jacoco.reportPaths>${project.build.directory}/jacoco-reports</sonar.jacoco.reportPaths>
-            <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
-            <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/jacoco-reports</sonar.coverage.jacoco.xmlReportPaths>
-            <sonar.jacoco.reportPaths>target/jacoco.exec</sonar.jacoco.reportPaths>
+            <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>            
             <sonar.scm.provider>git</sonar.scm.provider>
             <sonar.scm.disabled>true</sonar.scm.disabled>
+            <sonar.organization>fredgod833</sonar.organization>
+            <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+            <sonar.token>c6f7af2502db07c8983e3126c86442dd76708f7c</sonar.token>
+            <!--
+            <sonar.sources>src/main</sonar.sources>
+            <sonar.tests>src/test</sonar.tests>
+            <sonar.java.binaries>target/classes</sonar.java.binaries>
             -->
+            <sonar.projectKey>fredgod833_${project.artifactId}</sonar.projectKey>     
+            <sonar.projectName>${project.artifactId}</sonar.projectName>
+            
             <!-- javadoc -->
-            <maven.javadoc.skip>true</maven.javadoc.skip>
-                
+            <maven.javadoc.skip>true</maven.javadoc.skip>                
 	</properties>
+        
+        
+        
+        
         <scm>
             <url>https://github.com/fredgod833/chess.git</url>
             <connection>scm:git:https://github.com/fredgod833/chess.git</connection>
@@ -119,6 +125,12 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
                     <version>3.7.1</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>3.10.0.2594</version>
                 </plugin>
 
             </plugins>

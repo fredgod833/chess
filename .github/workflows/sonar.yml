@@ -31,7 +31,28 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
+
+      - name: Build Project
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        working-directory: .
+        run: |
+          mvn clean install
+
+      - name: Analyze Essentials
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./essentials
+        run: |
+          mvn sonar:sonar \
+            -Dsonar.projectBaseDir=. \
+            -Dsonar.working.directory=target/sonar
+
+      - name: Analyze ChessBoard
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./chessboard
+        run: |
+          mvn sonar:sonar \
+            -Dsonar.projectBaseDir=. \
+            -Dsonar.working.directory=target/sonar
