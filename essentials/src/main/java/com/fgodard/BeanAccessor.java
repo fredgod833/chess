@@ -13,11 +13,12 @@ class BeanAccessor {
 
     private static final Map<String, List<BeanAccessor>> ACCESSORS = new HashMap<>();
     private static final ReadWriteLock LOCK = new ReentrantReadWriteLock();
-        
+    private static final Object[] VOID_PARAMS = new Object[0];
+    
     private String fieldName;
     private final Method accessor;
     private Method modifier = null;
-    private static final Object[] VOID_PARAMS = new Object[0];
+    
     private final Field field;
     
 

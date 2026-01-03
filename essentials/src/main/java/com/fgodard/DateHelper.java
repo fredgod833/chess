@@ -2,39 +2,52 @@ package com.fgodard;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by crios on 06/08/23.
  */
 public class DateHelper {
 
-    private static ThreadLocal<Map<String, SimpleDateFormat>> formatters = new ThreadLocal<Map<String, SimpleDateFormat>>() {
-        @Override
-        protected Map<String, SimpleDateFormat> initialValue() {
-            return new HashMap<>();
-        }
-    };
+    private static final Map<String, SimpleDateFormat> FORMATERS = new HashMap<>();
+    private static final Lock LOCK = new ReentrantLock();
 
     private DateHelper() {
 
     }
 
-    private static SimpleDateFormat getFormatter(final String format) {
-        SimpleDateFormat result = formatters.get().get(format);
+    private static SimpleDateFormat getFormater(final String format) {
+        SimpleDateFormat result = FORMATERS.get(format);
         if (result == null) {
             result = new SimpleDateFormat(format);
-            formatters.get().put(format, result);
+            FORMATERS.put(format, result);
         }
         return result;
     }
 
-
     public static String format(Date value, final String format) {
-        return value == null ? null : getFormatter(format).format(value);
+        if (format == null || value == null) {
+            return null;
+        }
+        try {
+            LOCK.lock();
+            return getFormater(format).format(value);
+        } finally {
+            LOCK.unlock();
+        }
     }
 
     public static String format(Calendar value, final String format) {
-        return value == null ? null : getFormatter(format).format(value);
+        if (format == null || value == null) {
+            return null;
+        }
+        try {
+            LOCK.lock();
+            return getFormater(format).format(value);
+        } finally {
+            LOCK.unlock();
+        }
     }
 
 }
