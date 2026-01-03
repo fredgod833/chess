@@ -6,21 +6,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class BeanAccessor {
 
-    private static ThreadLocal<Map<String, List<BeanAccessor>>> classAccessors = new ThreadLocal<Map<String, List<BeanAccessor>>>() {
-        @Override
-        protected synchronized Map<String, List<BeanAccessor>> initialValue() {
-            return new HashMap<>();
-        }
-    };
-
+    private static final Map<String, List<BeanAccessor>> ACCESSORS = new HashMap<>();
+    private static final ReadWriteLock LOCK = new ReentrantReadWriteLock();
+        
     private String fieldName;
-    private Method accessor;
+    private final Method accessor;
     private Method modifier = null;
-    private final Object[] nullParams = new Object[0];
-    private Field field;
+    private static final Object[] VOID_PARAMS = new Object[0];
+    private final Field field;
+    
 
     public String getFieldName() {
         return (field == null) ? fieldName : field.getName();
@@ -60,7 +59,7 @@ class BeanAccessor {
             return getValueByField(bean);
         }
         try {
-            return (Serializable) accessor.invoke(bean, nullParams);
+            return (Serializable) accessor.invoke(bean, VOID_PARAMS);
         } catch (IllegalArgumentException e) {
             // debug (e,"Erreur de lecture du bean %1$s.",String.valueOf(bean));
             return "?";
@@ -101,22 +100,25 @@ class BeanAccessor {
     public static final List<BeanAccessor> getAccessors(Object object) {
         Class clazz = object.getClass();
         String mapKey = clazz.getName().concat(String.valueOf(clazz.hashCode()));
-        Map<String, List<BeanAccessor>> accessorsMap = classAccessors.get();
-        List<BeanAccessor> result = accessorsMap.get(mapKey);
-        if (result != null) {
-            return result;
+        List<BeanAccessor> result;
+
+        try {
+            LOCK.readLock().lock();
+            result = ACCESSORS.get(mapKey);
+            if (result != null) {
+                return result;
+            }
+        } finally {
+            LOCK.readLock().unlock();
         }
+        
         // debug("recherche des accesseurs pour la classe %1$s", clazz.getName());
         result = new ArrayList<>();
-        accessorsMap.put(mapKey, result);
-        Object[] nullParams = new Object[0];
         java.lang.reflect.Method[] objMethods = clazz.getMethods();
-        java.lang.reflect.Method objMethod;
-        for (int i = 0; i < objMethods.length; i++) {
-            objMethod = objMethods[i];
+        for (Method objMethod : objMethods) {
             if (BeanAccessor.isAccessor(objMethod)) {
                 try {
-                    objMethod.invoke(object, nullParams);
+                    objMethod.invoke(object, VOID_PARAMS);
                     result.add(new BeanAccessor(objMethod));
                     // debug("méthode %1$s valide pour la classe %2$s.", objMethod.getName(), clazz.getName());
                 } catch (ReflectiveOperationException e) {
@@ -125,8 +127,16 @@ class BeanAccessor {
                     // debug(e, "Methode %1$s inaccessible pour la classe %2$s", objMethod.getName(), clazz.getName());
                 }
             }
+        }  
+            
+        try {
+            LOCK.writeLock().lock();
+            ACCESSORS.put(mapKey, result);
+            return result;
+            
+        } finally {
+            LOCK.writeLock().unlock();
         }
-        return result;
     }
 
     private static Field getField(Method method) {
@@ -175,5 +185,5 @@ class BeanAccessor {
     public <B extends Serializable> Serializable getValueByField(B bean) throws ReflectiveOperationException {
         return (Serializable) field.get(bean);
     }
-
+    
 }
