@@ -8,18 +8,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Cache de lecture de fichier. Thread Safe.
  */
 public class CachedFileProvider {
-
-    private static final ThreadLocal<CachedFileProvider> INSTANCE_MGR = new ThreadLocal<CachedFileProvider>() {
-        @Override
-        protected synchronized CachedFileProvider initialValue() {
-            return new CachedFileProvider();
-        }
-    };
+    
+    private static final CachedFileProvider INSTANCE = new CachedFileProvider();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
     private CachedFileProvider() {
 
@@ -39,7 +39,6 @@ public class CachedFileProvider {
         }
         try {
             Path p = file.toPath();
-
             long fileTime = Files.getLastModifiedTime(p).toMillis();
             CachedStream result = new CachedStream(Files.readAllBytes(p), fileTime);
             cachedMap.put(file.getAbsolutePath(), result);
@@ -73,7 +72,7 @@ public class CachedFileProvider {
             }
 
             stream.setLastCheckTs(System.currentTimeMillis());
-            return stream.refresh();
+            return new CachedStream(stream.getByteArray(), stream.getLastModifiedTime());
 
         } catch (IOException e) {
             throw new CachedFileNotFoundException(e, "Fichier %1$s illisible.", file.getAbsolutePath());
@@ -83,17 +82,22 @@ public class CachedFileProvider {
 
     private CachedStream getCachedStream(final File file, final long checkInterval)
             throws CachedFileNotFoundException, CachedFileTooLargeException {
-        CachedStream stream = cachedMap.get(file.getAbsolutePath());
+        LOCK.lock();
+        try {
+            CachedStream stream = cachedMap.get(file.getAbsolutePath());
+        
         if (stream == null) {
             return loadFile(file);
         }
+        
         if (stream.getLastCheckTs() + checkInterval < System.currentTimeMillis()) {
             return streamCheck(stream, file);
         }
-        if (stream != null) {
-            stream.reset();
+        
+        return new CachedStream(stream.getByteArray(), stream.getLastModifiedTime());
+        } finally {
+            LOCK.unlock();
         }
-        return stream;
     }
 
     /**
@@ -109,12 +113,11 @@ public class CachedFileProvider {
      * @throws CachedFileNotFoundException
      *             si le fichier n'est pas trouvé ou pas accessible.
      */
-    public static CachedStream getCachedInputStream(final File file, final int checkInterval)
-            throws CachedFileNotFoundException, CachedFileTooLargeException {
+    public static CachedStream getCachedInputStream(final File file, final int checkInterval) throws CachedFileNotFoundException, CachedFileTooLargeException {
         if (file == null) {
             throw new CachedFileNotFoundException("Fichier null n'existe pas.");
         }
-        return INSTANCE_MGR.get().getCachedStream(file, checkInterval * 1000l);
+        return INSTANCE.getCachedStream(file, checkInterval * 1000l);
     }
 
 }

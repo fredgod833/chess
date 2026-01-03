@@ -29,15 +29,11 @@ public class CachedStream extends ByteArrayInputStream {
         return dirty;
     }
 
-    protected CachedStream refresh() {
-        this.pos = 0;
-        return this;
-    }
-
     CachedStream(byte[] streamContent, long lastModifiedTime) {
         super(streamContent);
         lastCheckTs = System.currentTimeMillis();
         this.lastModifiedTime = lastModifiedTime;
+        this.pos = 0;
     }
 
     /**
