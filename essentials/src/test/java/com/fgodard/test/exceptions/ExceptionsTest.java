@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import junit.framework.Assert;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -122,6 +123,16 @@ public class ExceptionsTest {
         assertTrue(out.toString().startsWith("Internal0007"));
         assertTrue(out.toString().contains("cause: java.io.IOException"));
         assertTrue(out.toString().contains("cause: Erreur d'ecriture"));
+    }
+    
+    
+    
+    @Test
+    public void testIntrospection() {
+        Iterable<String> toto = new ArrayList<>();
+        System.out.println(
+                toto.iterator().getClass()
+        );
     }
     
 }

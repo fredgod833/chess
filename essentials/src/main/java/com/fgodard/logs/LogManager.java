@@ -291,14 +291,14 @@ public class LogManager {
         try {
             return readConfigTextFile(STACK_FILTER, new HashSet<>());
         } catch (ConfigurationNotFoundException e) {
-            e.printStackTrace();
+            e.printStackTrace(System.out);
             try {
                 writeConfigTextFile(STACK_FILTER, new HashSet<>());
             } catch (ConfigurationFileException e1) {
-                e1.printStackTrace();
+                e1.printStackTrace(System.out);
             }
         } catch (ConfigurationFileException e) {
-            e.printStackTrace();
+            e.printStackTrace(System.out);
         }
         return new HashSet<>();
     }

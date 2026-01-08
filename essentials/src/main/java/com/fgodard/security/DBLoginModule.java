@@ -213,7 +213,7 @@ public class DBLoginModule implements LoginModule
       if (debug())
       {
         System.out.println(t.getMessage());
-        t.printStackTrace();
+        t.printStackTrace(System.out);
       }
       //StringWriter sw = new StringWriter();
       //PrintWriter pw = new PrintWriter(sw);
@@ -392,45 +392,49 @@ public class DBLoginModule implements LoginModule
       if (debug())
       {
         System.out.println(e.getMessage());
-        e.printStackTrace();
+        e.printStackTrace(System.out);
       }
 
       throw e;
 
     } finally {
 
-      try
-      {
-        if (resultSet != null)
-          resultSet.close();
-      } catch (Exception e) {
-        if (debug()) {
-          e.printStackTrace(System.out);
-        }
-      }
-
-      try {
-        if (pstmt != null)
-          pstmt.close();
-      } catch (Exception e) {
-        if (debug())
-        {
-          e.printStackTrace(System.out);
-        }
-      }
-
-      try {
-        if (conn != null)
-          conn.close();
-      } catch (Exception e) {
-        if (debug())
-        {
-          e.printStackTrace(System.out);
-        }
-      }
+            closeSilently(resultSet, pstmt, conn);
     }
     return null;
   }
+
+    private void closeSilently(ResultSet resultSet, PreparedStatement pstmt, Connection conn) {
+        try
+        {
+            if (resultSet != null)
+                resultSet.close();
+        } catch (Exception e) {
+            if (debug()) {
+                e.printStackTrace(System.out);
+            }
+        }
+        
+        try {
+            if (pstmt != null)
+                pstmt.close();
+        } catch (Exception e) {
+            if (debug())
+            {
+                e.printStackTrace(System.out);
+            }
+        }
+
+        try {
+            if (conn != null)
+                conn.close();
+        } catch (Exception e) {
+            if (debug())
+            {
+                e.printStackTrace(System.out);
+            }
+        }
+    }
 
   private boolean checkPass(String typedPass, String storedPass)
   {

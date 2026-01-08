@@ -91,7 +91,7 @@ public class CachedFileProvider {
             return streamCheck(stream, file);
         }
         
-        return new CachedStream(stream.getByteArray(), stream.getLastModifiedTime());
+        return stream;
         } finally {
             LOCK.unlock();
         }

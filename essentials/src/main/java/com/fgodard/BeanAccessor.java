@@ -39,11 +39,11 @@ class BeanAccessor {
 
     }
 
-    public Class getType() {
-        return accessor.getReturnType();
+    public Class<?> getType() {
+        return accessor.getReturnType();        
     }
 
-    public <T extends Serializable> void setValue(Serializable bean, T value)
+    public <T> void setValue(Serializable bean, T value)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         if (field != null) {
             setValueByField(bean, value);
@@ -55,18 +55,18 @@ class BeanAccessor {
         modifier.invoke(bean, value);
     }
 
-    public Serializable getValue(Serializable bean) throws ReflectiveOperationException {
+    public Object getValue(Serializable bean) throws ReflectiveOperationException {
         if (field != null) {
             return getValueByField(bean);
         }
         try {
-            return (Serializable) accessor.invoke(bean, VOID_PARAMS);
+            return accessor.invoke(bean, VOID_PARAMS);
         } catch (IllegalArgumentException e) {
             // debug (e,"Erreur de lecture du bean %1$s.",String.valueOf(bean));
             return "?";
         }
     }
-
+    
     /**
      * Détermines si une méthode correspond à un accesseur d'un bean
      * 
@@ -82,7 +82,7 @@ class BeanAccessor {
         // seconde condition : accesseur n'a pas de paramètre
         result = result && (method.getParameterTypes().length == 0);
         // troisieme condition : la méthode retourne un resultat
-        Class returntype = method.getReturnType();
+        Class<?> returntype = method.getReturnType();
         result = result && (returntype != null) && (Serializable.class.isAssignableFrom(returntype) || Iterable.class.isAssignableFrom(returntype));
         // quatrieme condition : le nom de l'accesseur commence par "get" ou "is"
         result = result && (method.getName().startsWith("get") || method.getName().startsWith("has")
@@ -94,12 +94,12 @@ class BeanAccessor {
         // result = result && ( getField(method) != null );
         return result;
     }
-
+    
     /**
      * Retroune la liste des accesseurs (méthodes getxxx) qui permettent d'accéder aux propriétées des Beans.
      */
     public static final List<BeanAccessor> getAccessors(Object object) {
-        Class clazz = object.getClass();
+        Class<?> clazz = object.getClass();
         String mapKey = clazz.getName().concat(String.valueOf(clazz.hashCode()));
         List<BeanAccessor> result;
 
@@ -178,7 +178,7 @@ class BeanAccessor {
         return null;
     }
 
-    public <T extends Serializable> void setValueByField(Object bean, T value)
+    public <T> void setValueByField(Object bean, T value)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         field.set(bean, value);
     }

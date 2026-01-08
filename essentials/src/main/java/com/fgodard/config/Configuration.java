@@ -14,6 +14,8 @@ import java.util.*;
  * Created by crios on 06/08/23.
  */
 public class Configuration {
+    
+    private static final String UTF8 = "UTF-8";
 
     private static File getApplicationConfigDir() throws ConfigurationNotFoundException {
 
@@ -86,7 +88,7 @@ public class Configuration {
         InputStream stream;
         try {
             stream = CachedFileProvider.getCachedInputStream(propFile, 30);
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF8))) {
                 String line = reader.readLine();
                 while (line != null) {
                     String sline = line.trim();
@@ -106,7 +108,7 @@ public class Configuration {
             throw new ConfigurationNotFoundException(e, "Fichier de configuration %1$s non trouvé. ",
                     propFile.getName());
         }
-    }
+    }    
 
     public static void createPropertiesIfNotExists(String fileName) throws ConfigurationNotFoundException {
         File directory = getApplicationConfigDir();
@@ -119,7 +121,7 @@ public class Configuration {
             try {
                 Files.createFile(propFile.toPath());
             } catch (IOException e) {
-                e.printStackTrace();
+                e.printStackTrace(System.out);
             }
         }
     }
@@ -131,7 +133,7 @@ public class Configuration {
         InputStream propertiesStream;
         try {
             propertiesStream = CachedFileProvider.getCachedInputStream(propFile, 30);
-            return getPropertiesFromStream(fileName, propertiesStream, "UTF-8");
+            return getPropertiesFromStream(fileName, propertiesStream, UTF8);
 
         } catch (CachedFileTooLargeException e) {
             if (values == null) {
@@ -164,7 +166,7 @@ public class Configuration {
         InputStream propertiesStream;
         try {
             propertiesStream = CachedFileProvider.getCachedInputStream(propFile, 30);
-            return getPropertiesFromStream(fileName, propertiesStream, "UTF-8");
+            return getPropertiesFromStream(fileName, propertiesStream, UTF8);
         } catch (CachedFileTooLargeException e) {
             throw new ConfigurationFileException(e, "Fichier de configuration %1$s trop volumineux. ", fileName);
         } catch (CachedFileNotFoundException e) {

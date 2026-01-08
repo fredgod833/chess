@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 import static com.fgodard.StringHelper.nvl;
 import static com.fgodard.StringHelper.trim;
 import static com.fgodard.logs.LogManager.debugFwk;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -18,11 +20,12 @@ public class BeanHelper {
     private static final String SUB_OBJECT_SEPARATOR = "; ";
     private static final String COLLECTION_SEPARATOR = ", ";
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS";
+    private static final String ETC_STRING = ".....";
 
     private static final int MAX_DEPTH = 3;
 
     private static void writeData(final StringBuilder builder, final int depth, final String propName,
-            final Object propValue, final LinkedList written, final String separator, final List<String> excluded) {
+            final Object propValue, final  LinkedList<Serializable> written, final String separator, final List<String> excluded) {
 
         Serializable value = (Serializable) propValue;
         String name = nvl(propName, "");
@@ -46,8 +49,8 @@ public class BeanHelper {
             return;
         }
 
-        if (value instanceof Collection) {
-            writeObjectList(builder, name, depth, (Collection) value, written, separator, excluded);
+        if (value instanceof Iterable) {
+            writeObjectList(builder, name, depth, (Iterable) value, written, separator, excluded);
             return;
         }
 
@@ -60,11 +63,11 @@ public class BeanHelper {
         writeObject(builder, name, depth, value, written, separator, excluded);
     }
 
-    private static void writeObject(final StringBuilder builder, final String name, final int depth, Serializable value, final LinkedList written, final String separator, final List<String> excluded) {
+    private static void writeObject(final StringBuilder builder, final String name, final int depth, Serializable value, final  LinkedList<Serializable> written, final String separator, final List<String> excluded) {
 
         if (depth > MAX_DEPTH) {
             writePropName(name, builder);
-            builder.append(".....");
+            builder.append(ETC_STRING);
             return;
         }
 
@@ -75,9 +78,6 @@ public class BeanHelper {
             builder.append(value.toString());
             return;
         }
-
-        // Sous Objet non null;
-        Object fieldValue;
 
         // éviter les references circulaires entre objets;
         if (written.contains(value)) {
@@ -90,31 +90,30 @@ public class BeanHelper {
 
         writeValueFields(written, value, beanAccessors, name, excluded, builder, separator, depth);
     }
+    
 
-    private static void writeValueFields(final LinkedList written, Serializable value, List<BeanAccessor> beanAccessors, final String name, final List<String> excluded, final StringBuilder builder, final String separator, final int depth) {
+    private static void writeValueFields(final  LinkedList<Serializable> written, Serializable value, List<BeanAccessor> beanAccessors, final String name, final List<String> excluded, final StringBuilder builder, final String separator, final int depth) {
         Object fieldValue;
         written.push(value);
         boolean hasOne = false;
         for (BeanAccessor accessor : beanAccessors) {
-            try {
-                String fieldName;
-                if (trim(name).isEmpty()) {
-                    fieldName = accessor.getFieldName();
-                } else {
-                    fieldName = name.concat(".").concat(accessor.getFieldName());
+            String fieldName;
+            if (trim(name).isEmpty()) {
+                fieldName = accessor.getFieldName();
+            } else {
+                fieldName = name.concat(".").concat(accessor.getFieldName());
+            }
+            if (excluded == null || !excluded.contains(fieldName)) {
+                if (hasOne) {
+                    builder.append(separator);
                 }
-                if (excluded == null || !excluded.contains(fieldName)) {
-                    if (hasOne) {
-                        builder.append(separator);
-                    }
+                try {
                     fieldValue = accessor.getValue(value);
                     writeData(builder, depth + 1, fieldName, fieldValue, written, separator, excluded);
                     hasOne = true;
-                }
-
-            } catch (ReflectiveOperationException e) {
-                debugFwk(e, "impossible d'acceder à la propriété %1$s du Bean, classe = %2$s", accessor.getFieldName(),
-                        value == null ? "inconnue" : value.getClass().getName());
+                } catch (ReflectiveOperationException ex) {
+                    ex.printStackTrace(System.out);
+                }                
             }
         }
         written.pop();
@@ -161,10 +160,10 @@ public class BeanHelper {
      * 
      * @return
      */
-    private static boolean writeObjectList(StringBuilder builder, String propName, int depth, Collection objectList,
-            LinkedList written, String separator, List<String> excluded) {
+    private static boolean writeObjectList(StringBuilder builder, String propName, int depth, Iterable<?> objectList,
+            LinkedList<Serializable> written, String separator, List<String> excluded) {
 
-        if (objectList.isEmpty()) {
+        if (!objectList.iterator().hasNext()) {
             writePropName(propName, builder);
             builder.append(VOID_OBJECT_STRING);
             return true;
@@ -172,7 +171,7 @@ public class BeanHelper {
 
         if (depth > MAX_DEPTH) {
             writePropName(propName, builder);
-            builder.append(".....");
+            builder.append(ETC_STRING);
             return true;
         }
 
@@ -194,7 +193,7 @@ public class BeanHelper {
     }
 
     private static void writeObjectArray(StringBuilder builder, String propName, int depth, Object[] array,
-            LinkedList written, String separator, List<String> excluded) {
+             LinkedList<Serializable> written, String separator, List<String> excluded) {
 
         if (array.length == 0) {
             writePropName(propName, builder);
@@ -204,7 +203,7 @@ public class BeanHelper {
 
         if (depth > MAX_DEPTH) {
             writePropName(propName, builder);
-            builder.append(".....");
+            builder.append(ETC_STRING);
             return;
         }
 
@@ -221,7 +220,7 @@ public class BeanHelper {
     }
 
     private static boolean writeObjectMap(StringBuilder builder, String propName, int depth,
-            Map<Object, Object> objectMap, LinkedList written, List<String> excluded) {
+            Map<Object, Object> objectMap,  LinkedList<Serializable> written, List<String> excluded) {
 
         if (objectMap.isEmpty()) {
             writePropName(propName, builder);
@@ -231,7 +230,7 @@ public class BeanHelper {
 
         if (depth > MAX_DEPTH) {
             writePropName(propName, builder);
-            builder.append(".....");
+            builder.append(ETC_STRING);
             return true;
         }
         
@@ -273,12 +272,12 @@ public class BeanHelper {
         boolean result = true;
         Object[] nullParams = new Object[0];
         // on inspectes chaque valeur en parcourant les accesseurs
-        Serializable fieldValue;
+        Object fieldValue;
         List<BeanAccessor> accessors = BeanAccessor.getAccessors(bean);
         for (BeanAccessor accessor : accessors) {
             try {
                 fieldValue = accessor.getValue(bean);
-                result = isNullOrEmptyBean(fieldValue);
+                result = isNullOrEmptyObject(fieldValue);
                 if (!result) {
                     // au moins un champ n'est pas vide -> on sors.
                     break;
@@ -313,7 +312,7 @@ public class BeanHelper {
         Serializable bean;
         while (it.hasNext()) {
             bean = it.next();
-            if (!isNullOrEmptyBean(bean)) {
+            if (!isNullOrEmptyObject(bean)) {
                 return false;
             }
         }
@@ -329,7 +328,7 @@ public class BeanHelper {
      * 
      * @return true si l'objet est nul ou vide.
      */
-    public static boolean isNullOrEmptyBean(Serializable bean) {
+    public static boolean isNullOrEmptyObject(Object bean) {
         if (bean == null) {
             return true;
         }
@@ -346,7 +345,11 @@ public class BeanHelper {
             return isNullOrEmptyList((Iterable) bean);
         }
 
-        return areFieldsNullOrEmpty(bean);
+        if (Serializable.class.isAssignableFrom(bean.getClass())) {
+            return areFieldsNullOrEmpty((Serializable) bean);
+        }
+        
+        return true;        
     }
 
     public static StringBuilder writeBean(StringBuilder builder, Serializable bean, String... excluded) {

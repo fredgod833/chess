@@ -50,9 +50,22 @@ public class IntlException extends Exception {
         formattedMsg = buildMessage(new StringBuilder()).toString();
         return formattedMsg;
     }
+    
+    @Override
+    public String getLocalizedMessage() {
+        StringBuilder sb = new StringBuilder();
+        buildHeadMsg(sb, locale);
+        return sb.toString();
+    }
+    
+    public String getLocalizedMessage(Locale loc) {
+        StringBuilder sb = new StringBuilder();
+        buildHeadMsg(sb, loc);
+        return sb.toString();
+    }
 
     private StringBuilder buildMessage(StringBuilder sb) {
-        buildHeadMsg(sb);
+        buildHeadMsg(sb, locale);
         addStackInfo(sb,this,1);
         causes.stream().filter(e -> e != this).forEach(e -> {
             buildMessage(sb, e, 1);
@@ -60,7 +73,7 @@ public class IntlException extends Exception {
         return sb;
     }
 
-    private void buildHeadMsg(StringBuilder sb) {
+    private void buildHeadMsg(StringBuilder sb, Locale loc) {
         if (msgKey == null || msgKey.isEmpty()) {
             sb.append(this.getClass().getName());
             return;
@@ -69,7 +82,7 @@ public class IntlException extends Exception {
         String msg;
         try {
             final String sBundleName = this.getClass().getPackage().getName().replace('.','_');
-            ResourceBundle exceptionsMsg = PropertyResourceBundle.getBundle(sBundleName,locale);
+            ResourceBundle exceptionsMsg = ResourceBundle.getBundle(sBundleName,loc);
             msg = exceptionsMsg.getString(msgKey).trim();
 
         } catch (MissingResourceException e) {
