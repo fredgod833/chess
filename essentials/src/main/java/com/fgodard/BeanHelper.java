@@ -37,7 +37,7 @@ public class BeanHelper {
             value = (Serializable) ((Supplier) propValue).get();
         }
 
-        if (writeSimpleValue(builder, name, value)) {
+        if (writePrimitiveValue(builder, name, value)) {
             return;
         }
 
@@ -88,6 +88,11 @@ public class BeanHelper {
             return;
         }
 
+        writeValueFields(written, value, beanAccessors, name, excluded, builder, separator, depth);
+    }
+
+    private static void writeValueFields(final LinkedList written, Serializable value, List<BeanAccessor> beanAccessors, final String name, final List<String> excluded, final StringBuilder builder, final String separator, final int depth) {
+        Object fieldValue;
         written.push(value);
         boolean hasOne = false;
         for (BeanAccessor accessor : beanAccessors) {
@@ -115,7 +120,7 @@ public class BeanHelper {
         written.pop();
     }
 
-    private static boolean writeSimpleValue(StringBuilder builder, String propName, Object value) {
+    private static boolean writePrimitiveValue(StringBuilder builder, String propName, Object value) {
         if ((value instanceof CharSequence) || (value instanceof Character)) {
             writePropName(propName, builder);
             builder.append(value);
