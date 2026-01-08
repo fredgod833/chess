@@ -14,6 +14,9 @@ import java.util.logging.Logger;
 import static com.fgodard.StringHelper.formatMessage;
 import static com.fgodard.config.Configuration.readConfigTextFile;
 import static com.fgodard.config.Configuration.writeConfigTextFile;
+import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by crios on 05/08/23.
@@ -24,29 +27,30 @@ public class LogManager {
         private static final Level STACK_TRACE_LEVEL = Level.WARNING;
         private static final String FRAMEWORK_LOGGER_NAME = "fgodard";
         private static final String STACK_FILTER = "StackFilterList";
-
-        private static final ThreadLocal<LogContext> CONTEXT_SUPPLIER = new ThreadLocal<LogContext>() {
-            @Override
-            protected synchronized LogContext initialValue() {
-                return new LogContext();
-            }
-        };
-
-        private static final ThreadLocal<HashMap<String,Logger>> LOGGER_MAP = new ThreadLocal<HashMap<String,Logger>>() {
-            @Override
-            protected synchronized HashMap<String,Logger> initialValue() {
-                return new HashMap<>();
-            }
-        };
-
+        
+        private static final LogContext CONTEXT = new LogContext();
+        private static final ReadWriteLock CONTEXT_LOCK = new ReentrantReadWriteLock();
+        
+        private static final Map<String,Logger> LOGGER_MAP = new HashMap<>();
+        private static final ReadWriteLock MAP_LOCK = new ReentrantReadWriteLock();
+                
         public <C extends Supplier<String> & Serializable> void setLogsContext(C mdc) {
-            CONTEXT_SUPPLIER.get().setLogContext(mdc);
+            CONTEXT_LOCK.writeLock().lock();
+            try {
+                CONTEXT.setLogContext(mdc);
+            } finally {
+                CONTEXT_LOCK.writeLock().unlock();
+            }
         }
 
         public void clearLogsContext() {
-            CONTEXT_SUPPLIER.get().setLoggerName(null);
-            CONTEXT_SUPPLIER.get().setLogContext(null);
-            CONTEXT_SUPPLIER.remove();
+            CONTEXT_LOCK.writeLock().lock();
+            try {
+                CONTEXT.setLoggerName(null);
+                CONTEXT.setLogContext(null);
+            } finally {
+                CONTEXT_LOCK.writeLock().unlock();
+            }
         }
 
         /**
@@ -104,16 +108,17 @@ public class LogManager {
         }
 
         private static void appendContextInfos(StringBuilder sb) {
-            Supplier<String> context = (Supplier<String>) CONTEXT_SUPPLIER.get().getLogContext();
-            if (context == null) {
-                return;
-            }
-            String sContext = context.get();
-            sContext = sContext == null ? null : sContext.trim();
-            if (sContext == null || sContext.isEmpty()) {
-                return;
-            }
-            sb.append(sContext);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                Supplier<String> context = (Supplier<String>) CONTEXT.getLogContext();
+                String sContext = context.get();
+                sContext = sContext == null ? null : sContext.trim();
+                if (sContext != null && !sContext.isEmpty()) {
+                   sb.append(sContext);
+                }
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }            
         }
 
         private static void appendCallerContext(StringBuilder sb) {
@@ -157,10 +162,26 @@ public class LogManager {
             String msg;
             boolean sendAlert = (level.intValue() >= ALERT_LEVEL.intValue() && level.intValue() > Level.INFO.intValue());
             boolean writeStack = (level.intValue() >= STACK_TRACE_LEVEL.intValue() && level.intValue() > Level.INFO.intValue());
-            Logger logger = LOGGER_MAP.get().get(loggerName);
+            Logger logger;
+            MAP_LOCK.readLock().lock();
+            try {                
+                logger = LOGGER_MAP.get(loggerName);
+            } finally {
+                MAP_LOCK.readLock().unlock();
+            }
+            
             if (logger == null) {
-                logger = createLogger(loggerName);
-                LOGGER_MAP.get().put(loggerName, logger);
+                MAP_LOCK.writeLock().lock();
+                try {
+                    //On verifie qu'il n'y a pas de nouveau logger après liberation du lock.
+                    logger = LOGGER_MAP.get(loggerName);
+                    if (logger==null) {
+                        logger = createLogger(loggerName);
+                        LOGGER_MAP.put(loggerName, logger);
+                    }
+                } finally {
+                    MAP_LOCK.writeLock().unlock();
+                }
             }
 
             if (logger != null && !logger.isLoggable(level) && !sendAlert) {
@@ -289,6 +310,8 @@ public class LogManager {
      *            buffer d'écriture de l'exception.
      * @param exception
      *            l'exception à tracer.
+     * @param tabCount
+     * @param writeStack
      */
     protected static void appendExceptionDetails(StringBuilder messageBuffer, Throwable exception, int tabCount,
                                                  boolean writeStack) {
@@ -302,7 +325,8 @@ public class LogManager {
             ste = filterStackTrace(ste,stackFilter);
         }
         if (ste != null && ste.length > 0) {
-            messageBuffer.append(" at " + exception.getStackTrace()[0]);
+            messageBuffer.append(" at ");
+            messageBuffer.append(exception.getStackTrace()[0]);
         }
 
         messageBuffer.append(System.lineSeparator());
@@ -385,7 +409,12 @@ public class LogManager {
         }
 
         public static void debug(Throwable t, String message, Serializable...params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.FINE, t, null, message, params);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.FINE, t, null, message, params);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void infoFwk(Throwable t, String message, Serializable...params) {
@@ -393,15 +422,25 @@ public class LogManager {
         }
 
         public static void info(Throwable t, String message, Serializable...params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.INFO, t, null, message, params);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.INFO, t, null, message, params);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void warnFwk(Throwable t, String message, Serializable...params) {
             writeLog(FRAMEWORK_LOGGER_NAME, Level.WARNING, t, null, message, params);
         }
 
-        public static void warn(Throwable t, String message, Serializable...params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.WARNING, t, null, message, params);
+        public static void warn(Throwable t, String message, Serializable...params) {            
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.WARNING, t, null, message, params);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void errorFwk(Throwable t, String message, Serializable...params) {
@@ -409,7 +448,12 @@ public class LogManager {
         }
 
         public static void error(Throwable t, String message, Serializable...params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, t, null, message, params);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.SEVERE, t, null, message, params);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void debugFwk(Throwable t, String message) {
@@ -417,7 +461,12 @@ public class LogManager {
         }
 
         public static void debug(Throwable t, String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.FINE, t, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.FINE, t, null, message, new Serializable[0]);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void infoFwk(Throwable t, String message) {
@@ -425,7 +474,12 @@ public class LogManager {
         }
 
         public static void info(Throwable t, String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.INFO, t, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.INFO, t, null, message, new Serializable[0]);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void warnFwk(Throwable t, String message) {
@@ -433,7 +487,12 @@ public class LogManager {
         }
 
         public static void warn(Throwable t, String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.WARNING, t, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.WARNING, t, null, message, new Serializable[0]);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void errorFwk(Throwable t, String message) {
@@ -441,7 +500,12 @@ public class LogManager {
         }
 
         public static void error(Throwable t, String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, t, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(CONTEXT.getLoggerName(), Level.SEVERE, t, null, message, new Serializable[0]);
+            } finally {
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void debugFwk(Throwable t) {
@@ -449,7 +513,12 @@ public class LogManager {
         }
 
         public static void debug(Throwable t) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.FINE, t, null, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.FINE, t, null, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void infoFwk(Throwable t) {
@@ -457,7 +526,12 @@ public class LogManager {
         }
 
         public static void info(Throwable t) {
-            writeLog(FRAMEWORK_LOGGER_NAME, Level.INFO, t, null, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {
+                writeLog(FRAMEWORK_LOGGER_NAME, Level.INFO, t, null, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void warnFwk(Throwable t) {
@@ -465,7 +539,12 @@ public class LogManager {
         }
 
         public static void warn(Throwable t) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.WARNING, t, null, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.WARNING, t, null, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void errorFwk(Throwable t) {
@@ -473,7 +552,12 @@ public class LogManager {
         }
 
         public static void error(Throwable t) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, t, null, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.SEVERE, t, null, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void debugFwk(String message) {
@@ -481,7 +565,12 @@ public class LogManager {
         }
 
         public static void debug(String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.FINE, null, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.FINE, null, null, message, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void infoFwk(String message) {
@@ -489,7 +578,12 @@ public class LogManager {
         }
 
         public static void info(String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.INFO, null, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.INFO, null, null, message, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void warnFwk(String message) {
@@ -497,7 +591,12 @@ public class LogManager {
         }
 
         public static void warn(String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.WARNING, null, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.WARNING, null, null, message, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void errorFwk(String message) {
@@ -505,7 +604,12 @@ public class LogManager {
         }
 
         public static void error(String message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, null, null, message, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.SEVERE, null, null, message, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void debugFwk(String message, Serializable...params) {
@@ -513,7 +617,12 @@ public class LogManager {
         }
 
         public static void debug(String message, Serializable...params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.FINE, null, null, message, params);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.FINE, null, null, message, params);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void infoFwk(String message, Serializable...params) {
@@ -521,7 +630,12 @@ public class LogManager {
         }
 
         public static void info(String message, Serializable...params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.INFO, null, null, message, params);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.INFO, null, null, message, params);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void warnFwk(String message, Serializable...params) {
@@ -529,7 +643,12 @@ public class LogManager {
         }
 
         public static void warn(String message, Serializable...params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.WARNING, null, null, message, params);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.WARNING, null, null, message, params);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void errorFwk(String message, Serializable...params) {
@@ -537,7 +656,12 @@ public class LogManager {
         }
 
         public static void error(String message, Serializable... params) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, null, null, message, params);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.SEVERE, null, null, message, params);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void debugFwk(Supplier<String> message) {
@@ -545,7 +669,12 @@ public class LogManager {
         }
 
         public static void debug(Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.FINE, null, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.FINE, null, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void infoFwk(Supplier<String> message) {
@@ -553,7 +682,12 @@ public class LogManager {
         }
 
         public static void info(Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.INFO, null, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.INFO, null, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void warnFwk(Supplier<String> message) {
@@ -561,7 +695,12 @@ public class LogManager {
         }
 
         public static void warn(Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.WARNING, null, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.WARNING, null, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void errorFwk(Supplier<String> message) {
@@ -569,7 +708,12 @@ public class LogManager {
         }
 
         public static void error(Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, null, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.SEVERE, null, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void debugFwk(Throwable t, Supplier<String> message) {
@@ -577,7 +721,12 @@ public class LogManager {
         }
 
         public static void debug(Throwable t, Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.FINE, t, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.FINE, t, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void infoFwk(Throwable t, Supplier<String> message) {
@@ -585,7 +734,12 @@ public class LogManager {
         }
 
         public static void info(Throwable t, Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.INFO, t, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.INFO, t, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void warnFwk(Throwable t, Supplier<String> message) {
@@ -593,15 +747,25 @@ public class LogManager {
         }
 
         public static void warn(Throwable t, Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.WARNING, t, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.WARNING, t, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
         public static void errorFwk(Throwable t, Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, t, message, null, new Serializable[0]);
+            writeLog(FRAMEWORK_LOGGER_NAME, Level.SEVERE, t, message, null, new Serializable[0]);
         }
 
         public static void error(Throwable t, Supplier<String> message) {
-            writeLog(CONTEXT_SUPPLIER.get().getLoggerName(), Level.SEVERE, t, message, null, new Serializable[0]);
+            CONTEXT_LOCK.readLock().lock();
+            try {    
+                writeLog(CONTEXT.getLoggerName(), Level.SEVERE, t, message, null, new Serializable[0]);
+            } finally {    
+                CONTEXT_LOCK.readLock().unlock();
+            }
         }
 
 }
