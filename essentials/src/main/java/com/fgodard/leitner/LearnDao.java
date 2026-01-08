@@ -3,7 +3,6 @@ package com.fgodard.leitner;
 import com.fgodard.passivation.Parser;
 import com.fgodard.passivation.PassivationManager;
 
-import java.text.Format;
 import java.util.ArrayList;
 import java.util.List;
 

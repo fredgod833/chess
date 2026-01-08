@@ -1,7 +1,5 @@
 package com.fgodard.security;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import java.security.Principal;
 
@@ -49,7 +47,7 @@ public class DBLoginModule implements LoginModule
   protected Subject _subject;
   // the authentication status
   protected boolean _succeeded;
-  private static final String _SQLRequest = "SELECT U.NOMUTILISATEUR, U.MOTDEPASSE PASS FROM UTILISATEURS U WHERE NomUtilisateur=?";
+  private static final String USER_REQUEST = "SELECT U.NOMUTILISATEUR NAME, U.MOTDEPASSE PASS FROM UTILISATEURS U WHERE NomUtilisateur=? OR EMail=?";
   //private static final Logger _log = Logger.getLogger(DBLoginModule.class);
   //private static final Logger _logHisto = Logger.getLogger("LoginTracking");
 
@@ -135,10 +133,11 @@ public class DBLoginModule implements LoginModule
     // element in the security-role-mapping for the application.
     try
     {
-      if (checkUserInDatabase(username, password))
+      String name = searchUserInDatabase(username, password);
+      if (name != null)
       {
         _succeeded = true;
-        _name = username;
+        _name = name;
         _password = password.toCharArray();
         _authPrincipals = new Principal[2];
         // Adding username as principal to the subject
@@ -368,7 +367,7 @@ public class DBLoginModule implements LoginModule
    * @param password
    * @return
    */
-  private boolean checkUserInDatabase(String username, String password) throws Exception
+  private String searchUserInDatabase(String username, String password) throws Exception
   {
     boolean success = false;
     ResultSet resultSet = null;
@@ -379,15 +378,13 @@ public class DBLoginModule implements LoginModule
       Context initialContext = new InitialContext();
       DataSource ds = (DataSource)initialContext.lookup("java:comp/env/jdbc/UserDS");
       conn = ds.getConnection();
-      pstmt = conn.prepareStatement(_SQLRequest, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+      pstmt = conn.prepareStatement(USER_REQUEST, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
       pstmt.setString(1, username);
+      pstmt.setString(2, username);
       resultSet = pstmt.executeQuery();
-      if (resultSet.next())
+      if (resultSet.next() && checkPass(password, resultSet.getString("PASS")))
       {
-        if (checkPass(password, resultSet.getString("PASS")))
-        {
-          success = true;
-        }
+          return resultSet.getString("NAME");
       }
     }
     catch (Exception e)
@@ -432,7 +429,7 @@ public class DBLoginModule implements LoginModule
         }
       }
     }
-    return success;
+    return null;
   }
 
   private boolean checkPass(String typedPass, String storedPass)
