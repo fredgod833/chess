@@ -38,6 +38,7 @@ public abstract class AbstractPrincipal implements Principal
    * <p>
    * @return the name of this <code>AbstractPrincipal</code>.
    */
+  @Override
   public String getName()
   {
     return name;
@@ -48,6 +49,7 @@ public abstract class AbstractPrincipal implements Principal
    * <p>
    * @return a hash code for this <code>AbstractPrincipal</code>.
    */
+  @Override
   public int hashCode()
   {
     return name.hashCode();
@@ -58,6 +60,7 @@ public abstract class AbstractPrincipal implements Principal
    * <p>
    * @return a string representation of this <code>AbstractPrincipal</code>.
    */
+  @Override
   public abstract String toString();
 
   /**
@@ -69,6 +72,7 @@ public abstract class AbstractPrincipal implements Principal
    * @return true if the specified Object is equal to this
    *		<code>Principal</code>.
    */
+  @Override
   public abstract boolean equals(Object o);
 
 }

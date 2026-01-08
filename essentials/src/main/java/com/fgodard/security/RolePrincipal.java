@@ -49,6 +49,7 @@ public class RolePrincipal extends AbstractPrincipal
    * @return true if the specified Object is equal to this
    *		<code>RolePrincipal</code>.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (o == null)
@@ -62,4 +63,10 @@ public class RolePrincipal extends AbstractPrincipal
       return true;
     return false;
   }
+
+    @Override
+    public int hashCode() {
+        return this.getName().hashCode();
+    }
+  
 }

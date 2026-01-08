@@ -51,6 +51,7 @@ public class UserPrincipal extends AbstractPrincipal
    * @return true if the specified Object is equal to this
    *		<code>UserPrincipal</code>.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (o == null)
@@ -64,4 +65,9 @@ public class UserPrincipal extends AbstractPrincipal
       return true;
     return false;
   }
+
+    @Override
+    public int hashCode() {
+        return this.getName().hashCode();
+    }
 }
