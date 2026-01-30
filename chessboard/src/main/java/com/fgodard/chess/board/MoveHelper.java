@@ -141,7 +141,7 @@ public class MoveHelper {
      * @param filter filtre les pieces attaquantes potentielles (optimise la recherche) (exemple : "RBQ")
      * @return la liste des pieces
      */
-    public Collection<Piece> findAttackingPieces(GameBoard board, BoardCell orgCell, Color playerColor, final String filter) {
+    public static Collection<Piece> findAttackingPieces(GameBoard board, BoardCell orgCell, Color playerColor, final String filter) {
 
         ArrayList<Piece> result = new ArrayList<>();
         if (filter.contains("B") || filter.contains("Q")) {
@@ -204,22 +204,33 @@ public class MoveHelper {
         return Arrays.asList(mergePiecesArrays(rookOrQueen, bishopOrQueen, knights, pawns, king));
     }
 
-    public Collection<Piece> findAttackingPieces(King king) {
+    public static Collection<Piece> findAttackingPieces(King king) {
         return findAttackingPieces(king, null);
     }
 
-    public Collection<Piece> findAttackingPieces(King king, Character lastPieceMoved) {
-
+    public static Collection<Piece> findAttackingPieces(King king, Character lastPieceMoved) {
         String filter;
-        if (lastPieceMoved == null) {
+        if (null == lastPieceMoved) {
             filter = "RBNQP";
-        } else if (lastPieceMoved == 'N' || lastPieceMoved == 'P') {
-            filter = "RBQ"+lastPieceMoved;
-        } else {
-            filter = "RBQ";
+        } else switch (lastPieceMoved) {
+            case 'N':
+            case 'P':
+                filter = "RBQ"+lastPieceMoved;
+                break;
+            default:
+                filter = "RBQ";
+                break;
         }
 
         return findAttackingPieces(king.getCurrentBoard(), king.getCell(), king.getColor(), filter);
+    }
+
+    public static Collection<Piece> findAttackingPieces(GameBoard board, Collection<BoardCell> cells, Color color, String filter) {
+        ArrayList<Piece> result = new ArrayList<>();
+        for (BoardCell cell : cells) {
+            result.addAll(findAttackingPieces(board, cell, color, filter));
+        }
+        return result;
     }
 
 }

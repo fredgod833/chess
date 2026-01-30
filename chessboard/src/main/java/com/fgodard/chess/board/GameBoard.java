@@ -27,6 +27,9 @@ public class GameBoard {
 
     private final ArrayList<Piece> whitePiecesList = new ArrayList<>(16);
     private final ArrayList<Piece> blackPiecesList = new ArrayList<>(16);
+    
+    private King whiteKing = null;
+    private King blackKing = null;
 
     private boolean whiteCanCastleKingSide;
     private boolean whiteCanCastleQueenSide;
@@ -176,7 +179,7 @@ public class GameBoard {
         enPassantPawn = null;
         if (promPiece != null) {
             removePiece(pieceToMove);
-            addPiece(promPiece, destCell);
+            setPiece(promPiece, destCell);
             plyNoSincePawn = 0;
 
         } else {
@@ -304,9 +307,15 @@ public class GameBoard {
             if (piece > 'A' && piece < 'Z') {
                 p.setColor(Color.WHITE);
                 whitePiecesList.add(p);
+                if (piece == 'K') {
+                    whiteKing = (King) p;
+                }
             } else {
                 p.setColor(Color.BLACK);
                 blackPiecesList.add(p);
+                if (piece == 'k') {
+                    blackKing = (King) p;
+                }
             }
             boardMap[cell.get().getIdx()] = p;
         } else {
@@ -315,7 +324,7 @@ public class GameBoard {
 
     }
 
-    private void addPiece(final Piece piece, BoardCell cell) {
+    private void setPiece(final Piece piece, BoardCell cell) {
 
         piece.setCurrentBoard(this);
         if (piece.getColor() == Color.WHITE) {
@@ -340,7 +349,7 @@ public class GameBoard {
             throw new InvalidMoveException("Rocque noir interdit coté roi. (%s)", plyNo);
         }
         movePiece(r, BoardCell.F8, null);
-        addPiece(k, BoardCell.G8);
+        setPiece(k, BoardCell.G8);
 
     }
 
@@ -355,7 +364,7 @@ public class GameBoard {
             throw new InvalidMoveException("Rocque noir interdit coté reine. (%s)", plyNo);
         }
         movePiece(r, BoardCell.D8, null);
-        addPiece(k, BoardCell.C8);
+        setPiece(k, BoardCell.C8);
 
     }
 
@@ -370,7 +379,7 @@ public class GameBoard {
             throw new InvalidMoveException("Rocque blanc interdit coté roi. (%s)", plyNo);
         }
         movePiece(r, BoardCell.F1, null);
-        addPiece(k, BoardCell.G1);
+        setPiece(k, BoardCell.G1);
 
     }
 
@@ -385,7 +394,7 @@ public class GameBoard {
             throw new InvalidMoveException("Rocque blanc interdit coté reine. (%s)", plyNo);
         }
         movePiece(r, BoardCell.D1, null);
-        addPiece(k, BoardCell.C1);
+        setPiece(k, BoardCell.C1);
 
     }
 
@@ -521,7 +530,48 @@ public class GameBoard {
             movePiece(ply);
 
         }
-
+        
+        // Recherche d'echecs et de Mat
+        Collection<Piece> attackingPieces;
+        King opponentKing;
+        if (turnColor == Color.WHITE) {
+            opponentKing = blackKing;
+        } else {
+            opponentKing = whiteKing;
+        }
+        
+        attackingPieces = MoveHelper.findAttackingPieces(opponentKing, ply.getPiece());
+        if (attackingPieces != null && !attackingPieces.isEmpty()) {
+            if (opponentKing.getMoveCells().isEmpty()) {
+                // Ce n'est pas encore mat il faut vérifier les interceptions et les prises
+                if (attackingPieces.size() > 1) {
+                    //echec multiple et le roi n'a plus de case.
+                    ply.setMat(true);
+                } else {
+                    //une seule piece
+                    Piece attackingPiece = attackingPieces.iterator().next();
+                    //prise de la piece attaquante ?
+                    Collection<Piece> defeners = MoveHelper.findAttackingPieces(this,attackingPiece.getCell(),attackingPiece.getColor(),null);
+                    if (defeners == null || defeners.isEmpty()) {
+                        //piece attaquante pas en prise
+                        if (attackingPiece.getSymbol()=='N') {
+                            //Cavalier : pas d'interception possible
+                            ply.setMat(true);
+                        } else {
+                            //Rechercher les interceptions
+                            Collection<BoardCell> cells = listCellsBetween(opponentKing.getCell(), attackingPiece.getCell());
+                            defeners = MoveHelper.findAttackingPieces(this, cells,attackingPiece.getColor(), null);
+                            if (defeners == null || defeners.isEmpty()) {
+                                ply.setMat(true);
+                            }
+                        }
+                    }
+                }
+            }
+            ply.setChess(true);
+        }
+        
+        
         clearExportPosition();
 
         nextTurn();
@@ -767,6 +817,31 @@ public class GameBoard {
         //ply.setMat("#".equals(m.group(8)));
 
         move(ply);
+    }
+
+    private Collection<BoardCell> listCellsBetween(BoardCell sourceCell, BoardCell destCell) {
+        Collection<BoardCell> result = new ArrayList<>();
+        int dCol = (destCell.getColIdx() - sourceCell.getColIdx());        
+        if (dCol != 0) {
+            dCol = dCol/Math.abs(dCol);
+        }
+        int dLine = (destCell.getLineIdx() - sourceCell.getLineIdx());
+        if (dLine != 0) {
+            dLine = dLine/Math.abs(dLine);
+        }
+        int i=1;
+        boolean end;
+        int col;
+        int line;
+        do {
+            col = sourceCell.getCol() + i*dCol;
+            line = sourceCell.getLine() + i*dLine;   
+            end = (col == destCell.getColIdx() && line == destCell.getLineIdx());            
+            if (!end) {
+                Board.getCell(col, line).ifPresent(result::add);                
+            }
+        } while(!end);
+        return result;
     }
 
 }

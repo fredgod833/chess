@@ -124,15 +124,6 @@ public class ExceptionsTest {
         assertTrue(out.toString().contains("cause: java.io.IOException"));
         assertTrue(out.toString().contains("cause: Erreur d'ecriture"));
     }
-    
-    
-    
-    @Test
-    public void testIntrospection() {
-        Iterable<String> toto = new ArrayList<>();
-        System.out.println(
-                toto.iterator().getClass()
-        );
-    }
+
     
 }

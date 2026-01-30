@@ -1,6 +1,10 @@
 package com.fgodard.chess.board.pieces;
 
-import com.fgodard.chess.board.*;
+import com.fgodard.chess.board.GameBoard;
+import com.fgodard.chess.board.Piece;
+import com.fgodard.chess.board.Color;
+import com.fgodard.chess.board.BoardCell;
+import com.fgodard.chess.board.Board;
 
 import java.util.ArrayList;
 import java.util.Collection;

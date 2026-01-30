@@ -59,7 +59,7 @@ public class Configuration {
                 writer.write(System.lineSeparator());
             }
         } catch (IOException e) {
-            throw new ConfigurationFileException(e, "Impossible d'écrire le fichier de configuration %1$s", fileName);
+            throw new ConfigurationFileException(e, "ConfigWriteError", fileName);
         }
     }
 
@@ -98,14 +98,14 @@ public class Configuration {
                     line = reader.readLine();
                 }
             } catch (IOException e) {
-                throw new ConfigurationFileException(e, "Erreur de lecture du fichier %1$s.", propFile.getName());
+                throw new ConfigurationFileException(e, "ConfigReadError", propFile.getName());
             }
             return result;
         } catch (CachedFileTooLargeException e) {
-            throw new ConfigurationFileException(e, "Fichier de configuration %1$s trop volumineux. ",
+            throw new ConfigurationFileException(e, "Fichier de configuration %1$s trop volumineux.",
                     propFile.getName());
         } catch (CachedFileNotFoundException e) {
-            throw new ConfigurationNotFoundException(e, "Fichier de configuration %1$s non trouvé. ",
+            throw new ConfigurationNotFoundException(e, "Fichier de configuration %1$s non trouvé.",
                     propFile.getName());
         }
     }    
