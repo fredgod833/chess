@@ -150,8 +150,8 @@ public class MoveHelper {
             addElementsFromDirection(board, orgCell, playerColor, 0, 1, null, result);
             addElementsFromDirection(board, orgCell, playerColor, 1, 0, null, result);
         }
-        Piece[] rookOrQueen = (Piece[]) result.stream()
-                .filter(p -> ("RQ".indexOf(p.getSymbol())>=0) && (filter.indexOf(p.getSymbol())>=0)).toArray();
+        Piece[] rookOrQueen = result.stream()
+                .filter(p -> ("RQ".indexOf(p.getSymbol())>=0) && (filter.indexOf(p.getSymbol())>=0)).toArray(Piece[]::new);
 
         result.clear();
         if (filter.contains("B") || filter.contains("Q")) {
@@ -160,8 +160,8 @@ public class MoveHelper {
             addElementsFromDirection(board, orgCell, playerColor, 1, -1, null, result);
             addElementsFromDirection(board, orgCell, playerColor, 1, 1, null, result);
         }
-        Piece[] bishopOrQueen = (Piece[]) result.stream()
-                .filter(p -> ("BQ".indexOf(p.getSymbol()) >= 0) && (filter.indexOf(p.getSymbol())>=0)).toArray();
+        Piece[] bishopOrQueen = result.stream()
+                .filter(p -> ("BQ".indexOf(p.getSymbol()) >= 0) && (filter.indexOf(p.getSymbol())>=0)).toArray(Piece[]::new);
 
         result.clear();
         if (filter.contains("N")) {
@@ -174,7 +174,7 @@ public class MoveHelper {
             addRelativeElement(board, orgCell, playerColor, -2, 1, null, result);
             addRelativeElement(board, orgCell, playerColor, -1, 2, null, result);
         }
-        Piece[] knights = (Piece[]) result.stream().filter(p -> p.getSymbol() == 'N').toArray();
+        Piece[] knights = result.stream().filter(p -> p.getSymbol() == 'N').toArray(Piece[]::new);
 
         result.clear();
         if (filter.contains("P")) {
@@ -186,7 +186,7 @@ public class MoveHelper {
                 addRelativeElement(board, orgCell, playerColor, 1, -1, null, result);
             }
         }
-        Piece[] pawns = (Piece[]) result.stream().filter(p -> p.getSymbol() == 'P').toArray();
+        Piece[] pawns = result.stream().filter(p -> p.getSymbol() == 'P').toArray(Piece[]::new);
 
         result.clear();
         if (filter.contains("K")) {
@@ -199,7 +199,7 @@ public class MoveHelper {
             addRelativeElement(board, orgCell, playerColor,1, 0, null, result);
             addRelativeElement(board, orgCell, playerColor,1, 1, null, result);
         }
-        Piece[] king = (Piece[]) result.stream().filter(p -> p.getSymbol() == 'K').toArray();
+        Piece[] king = result.stream().filter(p -> p.getSymbol() == 'K').toArray(Piece[]::new);
 
         return Arrays.asList(mergePiecesArrays(rookOrQueen, bishopOrQueen, knights, pawns, king));
     }
