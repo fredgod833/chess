@@ -76,9 +76,12 @@ class PositionExporter {
         Optional<BoardCell> cell;
         int emptyCellCount = 0;
         for (int row = 7; row >= 0; row--) {
-            for (int col = 0; col < 8; col++) {
+            for (int col = 0; col < 8; col++) {                
+                Piece p = null;                
                 cell = Board.getCell(col, row);
-                Piece p = g.getPiece(cell.get());
+                if (cell.isPresent()) {
+                    p = g.getPiece(cell.get());
+                }                
                 if (p == null) {
                     emptyCellCount++;
                 } else {
@@ -117,7 +120,6 @@ class PositionExporter {
 
     private static void appendBlackHTMLPosition(StringBuilder sb, GameBoard g) {
         sb.append("<table class=\"board\">\n");
-        BoardCell cell;
         appendBlackBoardLetters(sb, "top");
         for (int row = 0; row < 8; row++) {
             sb.append("\t<tr>\n");
@@ -125,11 +127,15 @@ class PositionExporter {
             appendBoardLineNumber(sb, "left", sRow, sRow);
             for (int col = 7; col >= 0; col--) {
                 // on est jamais en dehors de l'échiquier ici.
-                cell = Board.getCell(col, row).get();
-                Piece p = g.getPiece(cell);
                 sb.append("\t\t<td");
-                appendMlAttribute(sb, "id", "board_cell_", cell.getAlgebricPos());
-                appendMlAttribute(sb, "class", "board_cell--", cell.getColor().name().toLowerCase());
+                Piece p = null;
+                Optional<BoardCell> cell = Board.getCell(col, row);
+                if (cell.isPresent()) {
+                    //toujours vrai
+                    p = g.getPiece(cell.get());
+                    appendMlAttribute(sb, "id", "board_cell_", cell.get().getAlgebricPos());
+                    appendMlAttribute(sb, "class", "board_cell--", cell.get().getColor().name().toLowerCase());
+                }
                 if (p != null) {
                     appendMlAttribute(sb, "data", "piece_", p.getColor().name().toLowerCase(), "_", String.valueOf(p.getSymbol()).toLowerCase());
                 }
@@ -148,19 +154,21 @@ class PositionExporter {
 
     private static void appendWhiteHTMLPosition(StringBuilder sb, GameBoard g) {
         sb.append("<table class=\"board\">\n");
-        BoardCell cell;
         appendWhiteBoardLetters(sb, "top");
         for (int row = 7; row >= 0; row--) {
             sb.append("\t<tr>\n");
             String sRow = String.valueOf(row + 1);
             appendBoardLineNumber(sb, "left", sRow, sRow);
             for (int col = 0; col < 8; col++) {
-                // pas de test Optional on est toujours dans l'échiquier.
-                cell = Board.getCell(col, row).get();
-                Piece p = g.getPiece(cell);
                 sb.append("\t\t<td");
-                appendMlAttribute(sb, "id", "board_cell_", cell.getAlgebricPos());
-                appendMlAttribute(sb, "class", "board_cell--", cell.getColor().name().toLowerCase());
+                // pas de test Optional on est toujours dans l'échiquier.
+                Piece p = null;
+                Optional<BoardCell> cell = Board.getCell(col, row);
+                if (cell.isPresent()) {
+                    p = g.getPiece(cell.get());
+                    appendMlAttribute(sb, "id", "board_cell_", cell.get().getAlgebricPos());
+                    appendMlAttribute(sb, "class", "board_cell--", cell.get().getColor().name().toLowerCase());
+                }
                 if (p != null) {
                     appendMlAttribute(sb, "data", "piece_", p.getColor().name().toLowerCase(), "_", String.valueOf(p.getSymbol()).toLowerCase());
                 }
