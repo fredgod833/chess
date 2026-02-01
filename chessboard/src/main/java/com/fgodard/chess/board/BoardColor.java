@@ -1,8 +1,17 @@
 package com.fgodard.chess.board;
 
 /**
- * Created by crios on 22/04/23.
+ * Énumération des couleurs des cases de l'échiquier.
+ *
+ * <p>Un échiquier standard alterne entre cases claires (blanches)
+ * et cases foncées (noires). La case a1 est toujours une case foncée.
+ *
+ * @author crios
+ * @see BoardCell
  */
 public enum BoardColor {
-    WHITE, BLACK;
+    /** Case claire */
+    WHITE,
+    /** Case foncée */
+    BLACK;
 }

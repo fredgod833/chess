@@ -10,10 +10,21 @@ import java.util.Collection;
 import static com.fgodard.chess.board.MoveHelper.addElementsFromDirection;
 
 /**
- * Created by crios on 23/04/23.
+ * Représente la tour aux échecs.
+ *
+ * <p>La tour peut se déplacer d'un nombre quelconque de cases
+ * horizontalement ou verticalement.
+ *
+ * <p>La tour participe au roque avec le roi.
+ *
+ * @author crios
+ * @see Piece
  */
 public class Rook extends Piece {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<BoardCell> getMoveCells() {
         Collection<BoardCell> result = new ArrayList<>();
@@ -24,6 +35,11 @@ public class Rook extends Piece {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return 'R' pour Rook (Tour)
+     */
     @Override
     public char getSymbol() {
         return 'R';

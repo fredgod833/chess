@@ -6,31 +6,79 @@ import java.io.Serializable;
 import java.util.Collection;
 
 /**
- * Created by crios on 23/04/23.
+ * Exception levée lorsqu'une pièce d'échecs est invalide.
+ *
+ * <p>Cette exception est lancée lorsque :
+ * <ul>
+ *   <li>Le symbole de pièce n'est pas reconnu</li>
+ *   <li>La pièce ne peut pas être créée</li>
+ * </ul>
+ *
+ * @author crios
  */
 public class InvalidPieceException extends IntlException {
 
-
+    /**
+     * Construit une exception avec un message.
+     *
+     * @param message le message d'erreur
+     */
     public InvalidPieceException(String message) {
         super(message);
     }
 
+    /**
+     * Construit une exception avec une cause et un message.
+     *
+     * @param cause la cause de l'exception
+     * @param message le message d'erreur
+     * @param <T> le type de la cause
+     */
     public <T extends Throwable> InvalidPieceException(T cause, String message) {
         super(cause, message);
     }
 
+    /**
+     * Construit une exception avec plusieurs causes et un message.
+     *
+     * @param causes les causes de l'exception
+     * @param message le message d'erreur
+     * @param <T> le type des causes
+     */
     public <T extends Throwable> InvalidPieceException(Collection<T> causes, String message) {
         super(causes, message);
     }
 
+    /**
+     * Construit une exception avec un message formaté.
+     *
+     * @param message le patron du message
+     * @param params les paramètres du message
+     */
     public InvalidPieceException(String message, Serializable... params) {
         super(message, params);
     }
 
+    /**
+     * Construit une exception avec une cause et un message formaté.
+     *
+     * @param cause la cause de l'exception
+     * @param message le patron du message
+     * @param params les paramètres du message
+     * @param <T> le type de la cause
+     */
     public <T extends Throwable> InvalidPieceException(T cause, String message, Serializable... params) {
         super(cause, message, params);
     }
 
+    /**
+     * Construit une exception avec plusieurs causes et un message formaté.
+     *
+     * @param causes les causes de l'exception
+     * @param message le patron du message
+     * @param params les paramètres du message
+     * @param <T> le type des causes
+     */
     public <T extends Throwable> InvalidPieceException(Collection<T> causes, String message, Serializable... params) {
         super(causes, message, params);
     }

@@ -9,10 +9,21 @@ import java.util.Collection;
 import static com.fgodard.chess.board.MoveHelper.addRelativeElement;
 
 /**
- * Created by crios on 23/04/23.
+ * Représente le cavalier aux échecs.
+ *
+ * <p>Le cavalier se déplace en "L" : deux cases dans une direction
+ * (horizontale ou verticale) puis une case perpendiculairement.
+ *
+ * <p>C'est la seule pièce qui peut sauter par-dessus les autres pièces.
+ *
+ * @author crios
+ * @see Piece
  */
 public class Knight extends Piece {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<BoardCell> getMoveCells() {
         Collection<BoardCell> result = new ArrayList<>();
@@ -27,6 +38,11 @@ public class Knight extends Piece {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return 'N' pour kNight (Cavalier)
+     */
     @Override
     public char getSymbol() {
         return 'N';

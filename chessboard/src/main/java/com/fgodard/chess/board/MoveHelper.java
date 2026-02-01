@@ -7,9 +7,29 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * Classe utilitaire pour le calcul des coups et la détection des attaques.
+ *
+ * <p>Cette classe fournit des méthodes statiques pour :
+ * <ul>
+ *   <li>Ajouter des cases de destination possibles pour une pièce</li>
+ *   <li>Parcourir l'échiquier dans une direction donnée</li>
+ *   <li>Trouver les pièces qui attaquent une case donnée</li>
+ *   <li>Détecter les échecs au roi</li>
+ * </ul>
+ *
+ * @author crios
+ * @see GameBoard
+ * @see Piece
+ */
 public class MoveHelper {
 
-
+    /**
+     * Fusionne plusieurs tableaux de pièces en un seul tableau.
+     *
+     * @param piecesArray les tableaux de pièces à fusionner
+     * @return un tableau contenant toutes les pièces
+     */
     private static Piece[] mergePiecesArrays(Piece[]... piecesArray) {
 
         int count = 0;
@@ -204,10 +224,26 @@ public class MoveHelper {
         return Arrays.asList(mergePiecesArrays(rookOrQueen, bishopOrQueen, knights, pawns, king));
     }
 
+    /**
+     * Recherche les pièces adverses qui attaquent un roi.
+     *
+     * @param king le roi à vérifier
+     * @return la collection des pièces qui attaquent le roi
+     */
     public static Collection<Piece> findAttackingPieces(King king) {
         return findAttackingPieces(king, null);
     }
 
+    /**
+     * Recherche les pièces adverses qui attaquent un roi, avec optimisation basée sur la dernière pièce jouée.
+     *
+     * <p>L'optimisation permet de réduire la recherche aux types de pièces susceptibles
+     * d'avoir créé un échec avec le dernier coup.
+     *
+     * @param king le roi à vérifier
+     * @param lastPieceMoved le symbole de la dernière pièce déplacée (pour optimisation), ou {@code null}
+     * @return la collection des pièces qui attaquent le roi
+     */
     public static Collection<Piece> findAttackingPieces(King king, Character lastPieceMoved) {
         String filter;
         if (null == lastPieceMoved) {
@@ -225,6 +261,15 @@ public class MoveHelper {
         return findAttackingPieces(king.getCurrentBoard(), king.getCell(), king.getColor(), filter);
     }
 
+    /**
+     * Recherche les pièces adverses qui attaquent un ensemble de cases.
+     *
+     * @param board l'échiquier en cours
+     * @param cells les cases à vérifier
+     * @param color la couleur du joueur (les pièces adverses seront recherchées)
+     * @param filter filtre les types de pièces à rechercher (ex: "RBNQP")
+     * @return la collection des pièces attaquantes
+     */
     public static Collection<Piece> findAttackingPieces(GameBoard board, Collection<BoardCell> cells, Color color, String filter) {
         ArrayList<Piece> result = new ArrayList<>();
         for (BoardCell cell : cells) {

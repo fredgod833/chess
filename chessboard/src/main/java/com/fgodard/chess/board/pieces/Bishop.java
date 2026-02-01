@@ -10,10 +10,19 @@ import java.util.Collection;
 import static com.fgodard.chess.board.MoveHelper.addElementsFromDirection;
 
 /**
- * Created by crios on 23/04/23.
+ * Représente le fou aux échecs.
+ *
+ * <p>Le fou peut se déplacer d'un nombre quelconque de cases
+ * en diagonale. Il reste toujours sur des cases de la même couleur.
+ *
+ * @author crios
+ * @see Piece
  */
 public class Bishop extends Piece {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<BoardCell> getMoveCells() {
         Collection<BoardCell> result = new ArrayList<>();
@@ -24,6 +33,11 @@ public class Bishop extends Piece {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return 'B' pour Bishop (Fou)
+     */
     @Override
     public char getSymbol() {
         return 'B';

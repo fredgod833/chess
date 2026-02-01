@@ -1,8 +1,16 @@
 package com.fgodard.chess.board;
 
 /**
- * Created by crios on 22/04/23.
+ * Énumération des couleurs des joueurs aux échecs.
+ *
+ * <p>Représente les deux camps : les blancs et les noirs.
+ * Les blancs jouent toujours en premier.
+ *
+ * @author crios
  */
 public enum Color {
-    WHITE, BLACK;
+    /** Les pièces blanches (jouent en premier) */
+    WHITE,
+    /** Les pièces noires */
+    BLACK;
 }

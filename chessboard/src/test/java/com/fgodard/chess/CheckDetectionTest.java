@@ -191,8 +191,8 @@ public class CheckDetectionTest {
         ply.setDestCell("e7");
         board.move(ply);
 
-        assertTrue(ply.isChess());
-        assertFalse(ply.isMat());
+        assertTrue(ply.isCheck());
+        assertFalse(ply.isMate());
     }
 
     @Test
@@ -217,7 +217,7 @@ public class CheckDetectionTest {
         ply.setDestCell("a8");
         board.move(ply);
 
-        assertTrue(ply.isChess());
-        assertFalse(ply.isMat());
+        assertTrue(ply.isCheck());
+        assertFalse(ply.isMate());
     }
 }

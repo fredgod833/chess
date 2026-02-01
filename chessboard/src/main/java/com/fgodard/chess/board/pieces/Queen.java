@@ -10,10 +10,24 @@ import java.util.Collection;
 import static com.fgodard.chess.board.MoveHelper.addElementsFromDirection;
 
 /**
- * Created by crios on 23/04/23.
+ * Représente la dame (reine) aux échecs.
+ *
+ * <p>La dame est la pièce la plus puissante. Elle peut se déplacer
+ * d'un nombre quelconque de cases dans toutes les directions :
+ * horizontale, verticale et diagonale.
+ *
+ * <p>Elle combine les mouvements de la tour et du fou.
+ *
+ * @author crios
+ * @see Piece
+ * @see Rook
+ * @see Bishop
  */
 public class Queen extends Piece {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<BoardCell> getMoveCells() {
         Collection<BoardCell> result = new ArrayList<>();
@@ -28,6 +42,11 @@ public class Queen extends Piece {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return 'Q' pour Queen (Dame)
+     */
     @Override
     public char getSymbol() {
         return 'Q';

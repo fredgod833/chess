@@ -9,35 +9,61 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Created by crios on 24/04/23.
+ * Classe utilitaire pour l'import et l'export de positions d'échecs.
+ *
+ * <p>Cette classe gère plusieurs formats de représentation des positions :
+ * <ul>
+ *   <li><b>FEN</b> (Forsyth-Edwards Notation) : format standard lisible</li>
+ *   <li><b>LLP</b> (Low Length Position) : format compressé propriétaire</li>
+ *   <li><b>HTML</b> : représentation visuelle sous forme de tableau</li>
+ * </ul>
+ *
+ * <h3>Format LLP</h3>
+ * <p>Le format LLP encode chaque case sur un seul caractère selon la grille suivante :
+ * <pre>
+ *   a b c d e f g h
+ *   i j k l m n o p
+ *   q r s t u v w x
+ *   &lt; { 5 6 7 8 } &gt;
+ *   [ ( 1 2 3 4 ) ]
+ *   Q R S T U V W X
+ *   I J K L M N O P
+ *   A B C D E F G H
+ * </pre>
+ *
+ * <p>Une position LLP se compose de 4 sections séparées par des tirets :
+ * <ol>
+ *   <li>Positions des 8 pions blancs</li>
+ *   <li>Positions des 8 pions noirs</li>
+ *   <li>Positions des 8 pièces blanches (KQRRBBNN) + promotions</li>
+ *   <li>Positions des 8 pièces noires (kqrrbbnn) + promotions</li>
+ * </ol>
+ *
+ * @author crios
+ * @see GameBoard
  */
 class PositionExporter {
 
-/*
-
-  Représentation des cases de l'échiquier format compressé 5(Low Length Position - LLP)
-
-    a b c d e f g h
-    i j k l m n o p
-    q r s t u v w x
-    < { 5 6 7 8 } >
-    [ ( 1 2 3 4 ) ]
-    Q R S T U V W X
-    I J K L M N O P
-    A B C D E F G H
-
- */
-
-    // CELLS = chaine permettant de coder un case sur 1 caractère pour les positions compressées
+    /**
+     * Table de correspondance pour encoder une case sur 1 caractère (format LLP).
+     * L'indice dans la chaîne correspond à l'indice de la case (0-63).
+     */
     private static final String CELLS = "ABCDEFGHIJKLMNOPQRSTUVWX[(1234)]<{5678}>qrstuvwxijklmnopabcdefgh";
 
-    // PIECES = chaine permettant de fixer l'indice de chaque piece pour attribuer sa position (positions LLD)
+    /**
+     * Symboles des pions dans l'ordre d'indexation LLP (8 blancs puis 8 noirs).
+     */
     private static final String PAWN_POS = "PPPPPPPPpppppppp";
 
-    // PIECES_POS = chaine permettant de fixer l'indice de chaque piece pour attribuer sa position (positions LLD)
+    /**
+     * Symboles des pièces (hors pions) dans l'ordre d'indexation LLP.
+     * Ordre : Roi, Dame, 2 Tours, 2 Fous, 2 Cavaliers pour chaque couleur.
+     */
     private static final String PIECES_POS = "KQRRBBNNkqrrbbnn";
 
-    // PIECES = chaine permettant de fixer l'indice de chaque piece pour attribuer sa position (positions LLD)
+    /**
+     * Concaténation des symboles de pions et de pièces pour l'indexation complète.
+     */
     private static final String PIECES = PAWN_POS + PIECES_POS;
 
 
@@ -405,10 +431,32 @@ class PositionExporter {
         }
     }
 
+    /**
+     * Importe une position au format LLP dans l'échiquier.
+     *
+     * @param board l'échiquier à remplir
+     * @param boardPosition la position au format LLP
+     * @throws InvalidPositionException si la position est invalide
+     */
     static void importLLP(final GameBoard board, final String boardPosition) throws InvalidPositionException {
         importLLPBoard(board, boardPosition);
     }
 
+    /**
+     * Importe une position au format FEN dans l'échiquier.
+     *
+     * <p>Le format FEN comprend :
+     * <ul>
+     *   <li>La position des pièces</li>
+     *   <li>Le trait (w/b)</li>
+     *   <li>Les droits de roque</li>
+     *   <li>La case de prise en passant</li>
+     * </ul>
+     *
+     * @param board l'échiquier à remplir
+     * @param fenPosition la position au format FEN
+     * @throws InvalidPositionException si la position FEN est invalide
+     */
     public static void importFEN(final GameBoard board, final String fenPosition) throws InvalidPositionException {
         try {
             String[] gameData = fenPosition.split(" ");
@@ -423,6 +471,13 @@ class PositionExporter {
         }
     }
 
+    /**
+     * Exporte la position de l'échiquier au format HTML.
+     *
+     * @param g l'échiquier à exporter
+     * @param color le point de vue (blancs ou noirs en bas)
+     * @return la représentation HTML de l'échiquier
+     */
     static String exportHTML(GameBoard g, Color color) {
         StringBuilder sb = new StringBuilder(100);
         if (color == Color.BLACK) {
@@ -433,6 +488,12 @@ class PositionExporter {
         return sb.toString();
     }
 
+    /**
+     * Exporte la position de l'échiquier au format FEN.
+     *
+     * @param g l'échiquier à exporter
+     * @return la position au format FEN
+     */
     public static String exportFEN(GameBoard g) {
         StringBuilder sb = new StringBuilder(100);
         appendFENPosition(sb, g);
@@ -445,6 +506,12 @@ class PositionExporter {
         return sb.toString();
     }
 
+    /**
+     * Exporte la position de l'échiquier au format LLP.
+     *
+     * @param g l'échiquier à exporter
+     * @return la position au format LLP
+     */
     public static String exportLLP(GameBoard g) {
         StringBuilder sb = new StringBuilder();
         appendLLPBoard(g, sb);

@@ -15,7 +15,25 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Created by crios on 23/04/23.
+ * Représente l'échiquier et gère l'état complet d'une partie d'échecs.
+ *
+ * <p>Cette classe est le gestionnaire central qui maintient :
+ * <ul>
+ *   <li>La position des pièces sur l'échiquier (tableau de 64 cases)</li>
+ *   <li>Les listes de pièces pour chaque camp (blancs et noirs)</li>
+ *   <li>Les droits de roque pour chaque camp</li>
+ *   <li>La case de prise en passant</li>
+ *   <li>Le compteur de coups et de demi-coups</li>
+ *   <li>La couleur du trait (joueur qui doit jouer)</li>
+ * </ul>
+ *
+ * <p>Elle permet d'importer et d'exporter des positions aux formats FEN et LLP,
+ * ainsi qu'en HTML pour l'affichage.
+ *
+ * @author crios
+ * @see Piece
+ * @see MoveHelper
+ * @see PositionExporter
  */
 public class GameBoard {
 
@@ -98,6 +116,13 @@ public class GameBoard {
 
     }
 
+    /**
+     * Récupère la pièce située sur une case donnée en notation algébrique.
+     *
+     * @param alpha la notation algébrique de la case (ex: "e4")
+     * @return la pièce sur la case, ou {@code null} si la case est vide ou si alpha est null
+     * @throws InvalidCellException si la notation algébrique est invalide
+     */
     public Piece getPiece(final String alpha) throws InvalidCellException {
         if (alpha == null) {
             return null;
@@ -106,6 +131,12 @@ public class GameBoard {
         return boardMap[cell.getIdx()];
     }
 
+    /**
+     * Récupère la pièce située sur une case donnée.
+     *
+     * @param cell la case de l'échiquier
+     * @return la pièce sur la case, ou {@code null} si la case est vide ou si cell est null
+     */
     public Piece getPiece(BoardCell cell) {
         if (cell == null) {
             return null;
@@ -130,6 +161,12 @@ public class GameBoard {
         }
     }
 
+    /**
+     * Réinitialise l'état pour un coup nul (null move).
+     *
+     * <p>Inverse le trait et remet les compteurs de coups à zéro.
+     * Utilisé principalement pour l'analyse de position.
+     */
     public void resetForNullMove() {
         switch (turnColor) {
             case BLACK: {
@@ -297,6 +334,18 @@ public class GameBoard {
 
     }
 
+    /**
+     * Ajoute une pièce sur l'échiquier aux coordonnées spécifiées.
+     *
+     * <p>La couleur de la pièce est déterminée par la casse du symbole :
+     * majuscule pour les blancs, minuscule pour les noirs.
+     *
+     * @param piece le symbole de la pièce (K/k=Roi, Q/q=Dame, R/r=Tour, B/b=Fou, N/n=Cavalier, P/p=Pion)
+     * @param col l'indice de colonne (0-7, où 0=a et 7=h)
+     * @param line l'indice de ligne (0-7, où 0=1 et 7=8)
+     * @throws InvalidPieceException si le symbole de pièce est invalide
+     * @throws InvalidCellException si les coordonnées sont hors de l'échiquier
+     */
     public void addPiece(final Character piece, int col, int line) throws InvalidPieceException, InvalidCellException {
 
         Optional<BoardCell> cell = Board.getCell(col, line);
@@ -512,6 +561,23 @@ public class GameBoard {
         this.html = null;
     }
 
+    /**
+     * Exécute un demi-coup (ply) sur l'échiquier.
+     *
+     * <p>Cette méthode gère tous les types de coups :
+     * <ul>
+     *   <li>Déplacements simples de pièces</li>
+     *   <li>Prises (y compris en passant)</li>
+     *   <li>Roques (petit et grand)</li>
+     *   <li>Promotions de pions</li>
+     * </ul>
+     *
+     * <p>Après l'exécution du coup, la méthode vérifie si le roi adverse
+     * est en échec ou mat, et passe le trait à l'adversaire.
+     *
+     * @param ply le demi-coup à jouer
+     * @throws InvalidMoveException si le coup est illégal
+     */
     public void move(Ply ply) throws InvalidMoveException {
 
         if (turnColor == null && ply.getColor() != null) {
@@ -530,7 +596,16 @@ public class GameBoard {
             movePiece(ply);
 
         }
-        
+
+        verifyCheckAndMate(ply);
+
+        clearExportPosition();
+
+        nextTurn();
+
+    }
+
+    private void verifyCheckAndMate(Ply ply) {
         // Recherche d'echecs et de Mat
         Collection<Piece> attackingPieces;
         King opponentKing;
@@ -546,7 +621,7 @@ public class GameBoard {
                 // Ce n'est pas encore mat il faut vérifier les interceptions et les prises
                 if (attackingPieces.size() > 1) {
                     //echec multiple et le roi n'a plus de case.
-                    ply.setMat(true);
+                    ply.setMate(true);
                 } else {
                     //une seule piece
                     Piece attackingPiece = attackingPieces.iterator().next();
@@ -556,61 +631,100 @@ public class GameBoard {
                         //piece attaquante pas en prise
                         if (attackingPiece.getSymbol()=='N') {
                             //Cavalier : pas d'interception possible
-                            ply.setMat(true);
+                            ply.setMate(true);
                         } else {
                             //Rechercher les interceptions
                             Collection<BoardCell> cells = listCellsBetween(opponentKing.getCell(), attackingPiece.getCell());
                             defeners = MoveHelper.findAttackingPieces(this, cells,attackingPiece.getColor(), null);
                             if (defeners == null || defeners.isEmpty()) {
-                                ply.setMat(true);
+                                ply.setMate(true);
                             }
                         }
                     }
                 }
             }
-            ply.setChess(true);
+            ply.setCheck(true);
         }
-        
-        
-        clearExportPosition();
-
-        nextTurn();
-
     }
 
+    /**
+     * Indique si les blancs peuvent encore roquer côté roi.
+     *
+     * @return {@code true} si le petit roque blanc est possible
+     */
     public boolean isWhiteCanCastleKingSide() {
         return whiteCanCastleKingSide;
     }
 
+    /**
+     * Indique si les blancs peuvent encore roquer côté dame.
+     *
+     * @return {@code true} si le grand roque blanc est possible
+     */
     public boolean isWhiteCanCastleQueenSide() {
         return whiteCanCastleQueenSide;
     }
 
+    /**
+     * Indique si les noirs peuvent encore roquer côté roi.
+     *
+     * @return {@code true} si le petit roque noir est possible
+     */
     public boolean isBlackCanCastleKingSide() {
         return blackCanCastleKingSide;
     }
 
+    /**
+     * Indique si les noirs peuvent encore roquer côté dame.
+     *
+     * @return {@code true} si le grand roque noir est possible
+     */
     public boolean isBlackCanCastleQueenSide() {
         return blackCanCastleQueenSide;
     }
 
+    /**
+     * Définit la couleur du joueur ayant le trait.
+     *
+     * @param turnColor la couleur du joueur qui doit jouer
+     */
     public void setTurnColor(Color turnColor) {
         this.turnColor = turnColor;
         clearExportPosition();
     }
 
+    /**
+     * Retourne la couleur du joueur ayant le trait.
+     *
+     * @return la couleur du joueur qui doit jouer
+     */
     public Color getTurnColor() {
         return turnColor;
     }
 
+    /**
+     * Retourne le numéro du demi-coup actuel.
+     *
+     * @return le numéro de demi-coup (ply)
+     */
     public int getPlyNo() {
         return plyNo;
     }
 
+    /**
+     * Retourne le numéro du coup actuel.
+     *
+     * @return le numéro de coup (incrémenté après chaque coup noir)
+     */
     protected int getCurrentMove() {
         return currentMove;
     }
 
+    /**
+     * Retourne la case de prise en passant actuelle.
+     *
+     * @return la case de prise en passant, ou {@code null} si aucune prise en passant n'est possible
+     */
     public BoardCell getEnPassantCell() {
         return enPassantCell;
     }
@@ -631,10 +745,21 @@ public class GameBoard {
 
     }
 
+    /**
+     * Indique si la partie utilise les règles du Chess960 (Fischer Random Chess).
+     *
+     * @return {@code true} si la partie est en mode Chess960
+     */
     public boolean isChess960() {
         return chess960;
     }
 
+    /**
+     * Définit la case de prise en passant à partir de sa notation algébrique.
+     *
+     * @param enPassant la notation algébrique de la case (ex: "e3")
+     * @throws InvalidCellException si la notation est invalide ou si la case n'est pas valide pour la prise en passant
+     */
     public void setEnPassantCell(final String enPassant) throws InvalidCellException {
 
         enPassantCell = null;
@@ -701,6 +826,20 @@ public class GameBoard {
         state = null;
     }
 
+    /**
+     * Importe une position à partir d'une chaîne au format FEN (Forsyth-Edwards Notation).
+     *
+     * <p>Le format FEN comprend :
+     * <ul>
+     *   <li>La position des pièces (rangée 8 à 1)</li>
+     *   <li>Le trait (w ou b)</li>
+     *   <li>Les droits de roque (KQkq ou -)</li>
+     *   <li>La case de prise en passant ou -</li>
+     * </ul>
+     *
+     * @param position la chaîne FEN représentant la position
+     * @throws InvalidPositionException si la chaîne FEN est invalide
+     */
     public void importFEN(final String position) throws InvalidPositionException {
 
         clearCells();
@@ -708,6 +847,11 @@ public class GameBoard {
 
     }
 
+    /**
+     * Exporte la position actuelle au format FEN (Forsyth-Edwards Notation).
+     *
+     * @return la chaîne FEN représentant la position actuelle
+     */
     public String exportFEN() {
 
         if (fen != null) {
@@ -718,12 +862,28 @@ public class GameBoard {
 
     }
 
+    /**
+     * Importe une position à partir d'une chaîne au format LLP (Low Length Position).
+     *
+     * <p>Le format LLP est un format compressé propriétaire permettant de stocker
+     * une position sur une chaîne plus courte que le format FEN.
+     *
+     * @param position la chaîne LLP représentant la position
+     * @throws InvalidPositionException si la chaîne LLP est invalide
+     * @see PositionExporter
+     */
     public void importLLP(final String position) throws InvalidPositionException {
         clearCells();
         PositionExporter.importLLP(this, position);
         llp = position;
     }
 
+    /**
+     * Exporte la position actuelle au format LLP (Low Length Position).
+     *
+     * @return la chaîne LLP représentant la position actuelle
+     * @see PositionExporter
+     */
     public String exportLLP() {
 
         if (llp != null) {
@@ -734,6 +894,14 @@ public class GameBoard {
 
     }
 
+    /**
+     * Exporte la position actuelle sous forme d'objet {@link Position}.
+     *
+     * <p>L'objet Position contient la position LLP, la couleur du trait,
+     * et l'état de l'échiquier (droits de roque, case en passant).
+     *
+     * @return l'objet Position représentant l'état actuel
+     */
     public Position exportPosition() {
 
         if (pos != null) {
@@ -756,6 +924,12 @@ public class GameBoard {
 
     }
 
+    /**
+     * Exporte la position actuelle au format HTML sous forme de tableau.
+     *
+     * @param color la couleur du joueur dont le point de vue est affiché (blancs en bas ou noirs en bas)
+     * @return la chaîne HTML représentant l'échiquier
+     */
     public String exportHTML(Color color) {
 
         html = PositionExporter.exportHTML(this, color);
@@ -763,6 +937,15 @@ public class GameBoard {
 
     }
 
+    /**
+     * Applique un coup au format UCI (Universal Chess Interface).
+     *
+     * <p>Le format UCI représente un coup par les cases d'origine et de destination,
+     * par exemple "e2e4" ou "e7e8q" pour une promotion en dame.
+     *
+     * @param uci le coup au format UCI (4 ou 5 caractères)
+     * @throws InvalidMoveException si le coup UCI est invalide
+     */
     public void applyUci(final String uci) throws InvalidMoveException {
 
         if (uci == null || uci.length() < 4) {
