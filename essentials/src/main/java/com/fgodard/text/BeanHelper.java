@@ -1,11 +1,11 @@
-package com.fgodard;
+package com.fgodard.text;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
 
-import static com.fgodard.StringHelper.nvl;
-import static com.fgodard.StringHelper.trim;
+import static com.fgodard.text.StringHelper.nvl;
+import static com.fgodard.text.StringHelper.trim;
 import static com.fgodard.logs.LogManager.debugFwk;
 import java.util.logging.Level;
 import java.util.logging.Logger;

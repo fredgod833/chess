@@ -1,4 +1,4 @@
-package com.fgodard;
+package com.fgodard.text;
 
 import java.io.Serializable;
 import java.util.Arrays;

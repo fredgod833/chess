@@ -18,14 +18,14 @@ import java.util.Collection;
  *
  * @author crios
  */
-public class InvalidPgnFileException extends IntlException {
+public class InvalidPgnException extends IntlException {
 
     /**
      * Construit une exception avec un message.
      *
      * @param message le message d'erreur
      */
-    public InvalidPgnFileException(String message) {
+    public InvalidPgnException(String message) {
         super(message);
     }
 
@@ -36,7 +36,7 @@ public class InvalidPgnFileException extends IntlException {
      * @param message le message d'erreur
      * @param <T> le type de la cause
      */
-    public <T extends Throwable> InvalidPgnFileException(T cause, String message) {
+    public <T extends Throwable> InvalidPgnException(T cause, String message) {
         super(cause, message);
     }
 
@@ -47,7 +47,7 @@ public class InvalidPgnFileException extends IntlException {
      * @param message le message d'erreur
      * @param <T> le type des causes
      */
-    public <T extends Throwable> InvalidPgnFileException(Collection<T> causes, String message) {
+    public <T extends Throwable> InvalidPgnException(Collection<T> causes, String message) {
         super(causes, message);
     }
 
@@ -57,7 +57,7 @@ public class InvalidPgnFileException extends IntlException {
      * @param message le patron du message
      * @param params les paramètres du message
      */
-    public InvalidPgnFileException(String message, Serializable... params) {
+    public InvalidPgnException(String message, Serializable... params) {
         super(message, params);
     }
 
@@ -69,7 +69,7 @@ public class InvalidPgnFileException extends IntlException {
      * @param params les paramètres du message
      * @param <T> le type de la cause
      */
-    public <T extends Throwable> InvalidPgnFileException(T cause, String message, Serializable... params) {
+    public <T extends Throwable> InvalidPgnException(T cause, String message, Serializable... params) {
         super(cause, message, params);
     }
 
@@ -81,7 +81,7 @@ public class InvalidPgnFileException extends IntlException {
      * @param params les paramètres du message
      * @param <T> le type des causes
      */
-    public <T extends Throwable> InvalidPgnFileException(Collection<T> causes, String message, Serializable... params) {
+    public <T extends Throwable> InvalidPgnException(Collection<T> causes, String message, Serializable... params) {
         super(causes, message, params);
     }
 
