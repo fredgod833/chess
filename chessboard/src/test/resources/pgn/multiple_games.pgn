@@ -1,0 +1,26 @@
+[Event "First Game"]
+[Site "Site A"]
+[Date "2023.01.01"]
+[White "White1"]
+[Black "Black1"]
+[Result "1-0"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 1-0
+
+[Event "Second Game"]
+[Site "Site B"]
+[Date "2023.02.02"]
+[White "White2"]
+[Black "Black2"]
+[Result "0-1"]
+
+1. d4 d5 2. c4 e6 3. Nc3 Nf6 0-1
+
+[Event "Third Game"]
+[Site "Site C"]
+[Date "2023.03.03"]
+[White "White3"]
+[Black "Black3"]
+[Result "1/2-1/2"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 1/2-1/2

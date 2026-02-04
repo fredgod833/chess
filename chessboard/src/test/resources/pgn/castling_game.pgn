@@ -1,0 +1,8 @@
+[Event "Castling Test"]
+[Site "Test"]
+[Date "2023.06.06"]
+[White "Castle King"]
+[Black "Castle Queen"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. O-O d6 5. d3 Nf6 6. Nc3 Be6 7. Bg5 Qd7 8. Nd5 O-O-O *

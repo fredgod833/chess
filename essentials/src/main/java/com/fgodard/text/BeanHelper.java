@@ -6,9 +6,6 @@ import java.util.function.Supplier;
 
 import static com.fgodard.text.StringHelper.nvl;
 import static com.fgodard.text.StringHelper.trim;
-import static com.fgodard.logs.LogManager.debugFwk;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -270,7 +267,6 @@ public class BeanHelper {
      */
     private static boolean areFieldsNullOrEmpty(Serializable bean) {
         boolean result = true;
-        Object[] nullParams = new Object[0];
         // on inspectes chaque valeur en parcourant les accesseurs
         Object fieldValue;
         List<BeanAccessor> accessors = BeanAccessor.getAccessors(bean);
@@ -282,11 +278,10 @@ public class BeanHelper {
                     // au moins un champ n'est pas vide -> on sors.
                     break;
                 }
-            } catch (Exception e) {
+            } catch (ReflectiveOperationException e) {
                 // si on ne peut acceder à la valeur de ce champ, on considère qu'il vaut nul.
                 // => on ignore l'exception
-                debugFwk(e, "impossible d'acceder à la propriété %1$s du Bean de type %2$s", accessor.getFieldName(),
-                        bean.getClass().getName());
+                // debugFwk(e, "impossible d'acceder à la propriété %1$s du Bean de type %2$s", accessor.getFieldName(), bean.getClass().getName());
             }
         }
         return result;

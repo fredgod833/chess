@@ -1,0 +1,9 @@
+[Event "Promotion Test"]
+[Site "Test"]
+[Date "2023.07.07"]
+[White "Promoter"]
+[Black "Defender"]
+[Result "1-0"]
+[FEN "8/P7/8/8/8/8/8/4K2k w - - 0 1"]
+
+1. a8=Q+ 1-0

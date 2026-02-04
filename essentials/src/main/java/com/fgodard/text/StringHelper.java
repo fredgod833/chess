@@ -33,8 +33,7 @@ public class StringHelper {
 
     /**
      * Contruit un message contenant des paramètre quelconques
-     * @param format
-     *         A <a href="../util/Formatter.html#syntax">format string</a>
+     * @param format 
      * @param params
      * @return
      */

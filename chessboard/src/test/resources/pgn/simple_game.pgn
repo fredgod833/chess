@@ -1,0 +1,11 @@
+[Event "Test Event"]
+[Site "Test Site"]
+[Date "2023.11.15"]
+[White "Player White"]
+[Black "Player Black"]
+[Result "1-0"]
+[WhiteElo "2500"]
+[BlackElo "2400"]
+[ECO "C50"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. O-O Nf6 5. d3 d6 6. c3 O-O 1-0
