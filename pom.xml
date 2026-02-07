@@ -55,9 +55,9 @@
         
         
         <scm>
-            <url>https://github.com/fredgod833/chess.git</url>
+            <url>scm:git:https://github.com/fredgod833/chess.git</url>
             <connection>scm:git:https://github.com/fredgod833/chess.git</connection>
-            <developerConnection>https://github.com/fredgod833/chess.git</developerConnection>
+            <developerConnection>scm:git:https://github.com/fredgod833/chess.git</developerConnection>
             <tag>HEAD</tag>
         </scm>
         
@@ -84,11 +84,48 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.0</version>
+                    <version>3.12.1</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
                         <!-- <encoding>ISO-8859-15</encoding> -->
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.12</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>post-unit-test</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                                <outputDirectory>${project.build.directory}/jacoco-reports</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
 
@@ -117,14 +154,14 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>3.9.0</version>
                 </plugin>
 
                 <!-- site -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.7.1</version>
+                    <version>3.12.1</version>
                 </plugin>
 
                 <plugin>
@@ -146,7 +183,8 @@
                 <dependency>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.5</version>
+                    <version>3.3.1</version>
+                    <scope>compile</scope>
                 </dependency>
 
                 <!-- JUnit -->
@@ -174,23 +212,15 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>taglist-maven-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.0.0</version>
             </plugin>
 
             <!-- JavaDoc -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.6.3</version>
                 <configuration />
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <configuration>
-                    <configLocation>config/sun_checks.xml</configLocation>
-                </configuration>
             </plugin>
 
         </plugins>

@@ -113,7 +113,7 @@ public class IntlException extends Exception {
         }
         sb.append("cause: ");
         String msg = exception.getMessage();
-        if(msg == null || msg.isBlank()) {
+        if(msg == null || msg.trim().isEmpty()) {
             sb.append(exception.getClass().getCanonicalName());
         } else {
             sb.append(msg);
